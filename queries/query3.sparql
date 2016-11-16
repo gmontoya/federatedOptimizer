@@ -1,0 +1,9 @@
+SELECT DISTINCT * WHERE {
+    ?film <http://dbpedia.org/ontology/runtime> ?runtime .
+    ?film <http://dbpedia.org/ontology/director> ?director .
+    ?film <http://dbpedia.org/ontology/budget> ?budget .
+    ?director <http://dbpedia.org/ontology/nationality> ?nat .
+    ?nat  <http://dbpedia.org/ontology/areaMetro> ?area .
+    ?nat  <http://dbpedia.org/ontology/language> ?lang .
+    ?nat <http://xmlns.com/foaf/0.1/name> ?name
+}
