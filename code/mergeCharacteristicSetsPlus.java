@@ -75,7 +75,7 @@ class mergeCharacteristicSetsPlus {
         return ps;
     }
 
-    public static void writeCSS(HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, String fileName) {
+    public static void writeCSS(HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, String fileName) {
         try {
             ObjectOutputStream out = new ObjectOutputStream(
                     new BufferedOutputStream(new FileOutputStream(fileName)));
@@ -214,8 +214,8 @@ class mergeCharacteristicSetsPlus {
         //HashSet<Integer> csissues = readCSSText(file);
         int min = Integer.MAX_VALUE;
         Integer idMin = null;
-        HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css1 = readCSS(fileCSS1);
-        HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> reducedCSS = new HashMap<Integer, Pair<Integer, HashMap<String, Integer>>>();
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css1 = readCSS(fileCSS1);
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> reducedCSS = new HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>();
         HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps1 = readCPS(fileCPS1);
         HashMap<String, Integer> iis1 = readIIS(fileIIS1);
         HashMap<String, HashMap<String, HashMap<Integer,Integer>>> iio1 = readIIO(fileIIO1);
@@ -241,7 +241,7 @@ class mergeCharacteristicSetsPlus {
         int i = 0;
 
         for (Integer cs1 : css1.keySet()) {
-            Pair<Integer, HashMap<String, Integer>> cPs = css1.get(cs1);
+            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = css1.get(cs1);
             Integer count = cPs.getFirst();
             if (reducedCSS.size() < N) {
                 reducedCSS.put(cs1, cPs);
@@ -250,7 +250,7 @@ class mergeCharacteristicSetsPlus {
                     idMin = cs1;
                 }
             } else {
-                Pair<Integer, HashMap<String, Integer>> tmpCPs = reducedCSS.get(idMin); 
+                Pair<Integer, HashMap<String, Pair<Integer,Integer>>> tmpCPs = reducedCSS.get(idMin); 
                 if ((count > min) || ((count == min) && (tmpCPs.getSecond().keySet().size() < cPs.getSecond().keySet().size()))) {
                     reducedCSS.remove(idMin);
                     reducedCSS.put(cs1, cPs);
@@ -691,20 +691,20 @@ class mergeCharacteristicSetsPlus {
         }
     }
 
-    public static void mergeCS(Integer csDeleted, Pair<Integer, HashMap<String, Integer>> countPreds, HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> reducedCSS,HashMap<String, Integer> iis, HashMap<String, HashMap<String, HashMap<Integer,Integer>>> iio, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashSet<String> danglingSubjects, HashMap<String, HashMap<String, Integer>> danglingObjects, HashMap<Integer, HashMap<String, Integer>> danglingLeftPairs, HashMap<Integer, HashMap<String, Integer>> danglingRightPairs, HashMap<Integer, HashSet<Integer>> il, HashMap<Integer, HashSet<String>> is, HashMap<Integer, HashSet<String>> io) {
+    public static void mergeCS(Integer csDeleted, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPreds, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> reducedCSS,HashMap<String, Integer> iis, HashMap<String, HashMap<String, HashMap<Integer,Integer>>> iio, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashSet<String> danglingSubjects, HashMap<String, HashMap<String, Integer>> danglingObjects, HashMap<Integer, HashMap<String, Integer>> danglingLeftPairs, HashMap<Integer, HashMap<String, Integer>> danglingRightPairs, HashMap<Integer, HashSet<Integer>> il, HashMap<Integer, HashSet<String>> is, HashMap<Integer, HashSet<String>> io) {
 
         Integer tmpCount = countPreds.getFirst();
-        HashMap<String, Integer> tmpPsCount = countPreds.getSecond();
+        HashMap<String, Pair<Integer, Integer>> tmpPsCount = countPreds.getSecond();
         Set<String> tmpPs = tmpPsCount.keySet();
 
         Integer best = null;
         Integer bestCount = null;
-        HashMap<String, Integer> bestPsCount = null;
+        HashMap<String, Pair<Integer, Integer>> bestPsCount = null;
         Set<String> bestPs = null;
 
         for (Integer cs2 : reducedCSS.keySet()) {
             Integer auxCount = reducedCSS.get(cs2).getFirst();
-            HashMap<String, Integer> auxPsCount = reducedCSS.get(cs2).getSecond();
+            HashMap<String, Pair<Integer, Integer>> auxPsCount = reducedCSS.get(cs2).getSecond();
             Set<String> auxPs = auxPsCount.keySet();
 
             if (auxPs.containsAll(tmpPs)) {
@@ -719,9 +719,10 @@ class mergeCharacteristicSetsPlus {
         if (best != null) {
             bestCount += tmpCount;
             for (String p : tmpPs) {
-                Integer c = bestPsCount.get(p) + tmpPsCount.get(p);
+                Integer c = bestPsCount.get(p).getFirst() + tmpPsCount.get(p).getFirst();
+                Integer d = bestPsCount.get(p).getSecond() + tmpPsCount.get(p).getSecond();
                 //System.out.println("c: "+c+". p: "+p+". bestPsCount.get(p): "+bestPsCount.get(p)+". tmpPsCount.get(p): "+ tmpPsCount.get(p));
-                bestPsCount.put(p, c);
+                bestPsCount.put(p, new Pair<Integer, Integer>(c, d));
             }
             reducedCSS.put(best, new Pair(bestCount, bestPsCount));
             setMissingCSS(csDeleted, best, iis, iio, cps, danglingSubjects, danglingObjects, danglingLeftPairs, danglingRightPairs, il, is, io);
@@ -740,8 +741,8 @@ class mergeCharacteristicSetsPlus {
         if (best != null) {
             Set<String> complement = new HashSet<String>(tmpPs);
             complement.removeAll(intersection);
-            HashMap<String, Integer> tmpPsCountI = new HashMap<String, Integer>();
-            HashMap<String, Integer> tmpPsCountC = new HashMap<String, Integer>();
+            HashMap<String, Pair<Integer, Integer>> tmpPsCountI = new HashMap<String, Pair<Integer, Integer>>();
+            HashMap<String, Pair<Integer, Integer>> tmpPsCountC = new HashMap<String, Pair<Integer, Integer>>();
             // Entity -> Predicate -> Count
             HashMap<String, HashMap<String, Integer>> danglingObjectsI = new HashMap<String, HashMap<String, Integer>>();
             HashMap<String, HashMap<String, Integer>> danglingObjectsC = new HashMap<String, HashMap<String, Integer>>();
@@ -753,11 +754,11 @@ class mergeCharacteristicSetsPlus {
             HashMap<Integer, HashMap<String, Integer>> danglingRightPairsC = new HashMap<Integer, HashMap<String, Integer>>();
 
             for (String p : tmpPs) {
-                Integer c = tmpPsCount.get(p);
+                Pair<Integer, Integer> cd = tmpPsCount.get(p);
                 if (intersection.contains(p)) {
-                    tmpPsCountI.put(p, c);
+                    tmpPsCountI.put(p, cd);
                 } else {
-                    tmpPsCountC.put(p, c);
+                    tmpPsCountC.put(p, cd);
                 }
             }
 
@@ -838,8 +839,8 @@ class mergeCharacteristicSetsPlus {
                     danglingRightPairsC.put(csL, psCountC);
                 }
             }
-            Pair<Integer, HashMap<String, Integer>> countPredsI = new Pair(tmpCount, tmpPsCountI);
-            Pair<Integer, HashMap<String, Integer>> countPredsC = new Pair(tmpCount, tmpPsCountC);
+            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPredsI = new Pair(tmpCount, tmpPsCountI);
+            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPredsC = new Pair(tmpCount, tmpPsCountC);
             //System.out.println(countPredsI);
             mergeCS(csDeleted, countPredsI, reducedCSS, iis, iio, cps, danglingSubjects, danglingObjectsI, danglingLeftPairsI, danglingRightPairsI, il, is, io);
             //System.out.println(countPredsC);
@@ -866,11 +867,11 @@ class mergeCharacteristicSetsPlus {
         }
     }
 
-    public static HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> readCSS(String file) throws Exception {
+    public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> readCSS(String file) throws Exception {
         final ObjectInputStream in = new ObjectInputStream(
             new BufferedInputStream(new FileInputStream(file)));
 
-        final HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css = (HashMap<Integer, Pair<Integer, HashMap<String, Integer>>>) in.readObject();
+        final HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> css = (HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>>) in.readObject();
         return css;
     }
 

@@ -20,6 +20,7 @@ class produceJoinOrderingFederation {
     static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexes = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
     static boolean distinct;
     static List<Var> projectedVariables;
+    static boolean includeMultiplicity;
 
     public static HashMap<Integer, Integer> getCost(Integer ds) {
         Integer pos = datasetsIdPos.get(ds);
@@ -187,6 +188,7 @@ class produceJoinOrderingFederation {
         String datasetsFile = args[1];
         folder = args[2];
         long budget = Long.parseLong(args[3]);
+        includeMultiplicity = Boolean.parseBoolean(args[4]);
         datasets = readDatasets(datasetsFile);
         // Predicate --> DatasetId --> set of CSId
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex = readPredicateIndexes(folder, datasets); 
@@ -818,8 +820,11 @@ class produceJoinOrderingFederation {
                             Triple t2 = sq2.iterator().next();
                             if (t1.getObject().equals(t2.getSubject())) {
                                 // COMMENTED TO OMMIT CONSIDERING THE MULTIPLICITY
-                                //Long m1 = getMultiplicity(links12.get(p), p,  cPs, ps1, map1, cPs2, ps2, map2);
-                                Integer m1 = links12.get(p);
+                                if (includeMultiplicity) {
+                                    Long m1 = getMultiplicity(links12.get(p), p,  cPs, ps1, map1, cPs2, ps2, map2);
+                                } else {
+                                    Integer m1 = links12.get(p);
+                                }
                                 Long m2 = mult12.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -841,8 +846,11 @@ class produceJoinOrderingFederation {
                             Triple t1 = sq1.iterator().next();
                             if (t2.getObject().equals(t1.getSubject())) {
                                 // COMMENTED TO OMMIT CONSIDERING THE MULTIPLICITY
-                                //Long m1 = getMultiplicity(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
-                                Integer m1 = links21.get(p);
+                                if (includeMultiplicity) {
+                                    Long m1 = getMultiplicity(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
+                                } else {
+                                    Integer m1 = links21.get(p);
+                                }
                                 Long m2 = mult21.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -992,7 +1000,8 @@ class produceJoinOrderingFederation {
             double sel = 1.0;
             //System.out.println("distinct: "+costTmp);
             // COMMENTED TO OMMIT CONSIDERING THE MULTIPLICITY
-            /*for (String p : ps) {
+            if (includeMultiplicity) {
+              for (String p : ps) {
                 //System.out.println("p: "+p);
                 Triple t = map.get(p);
                 Node s = t.getSubject();
@@ -1002,7 +1011,8 @@ class produceJoinOrderingFederation {
                     sel = sel*(((double)css.get(cs).getSecond().get(p))/costTmp);
                     //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
-            }*/
+              }
+            }
             //System.out.println("costTmp: "+costTmp+". sel: "+sel);
             cost += Math.round(Math.ceil(costTmp*sel));
         }

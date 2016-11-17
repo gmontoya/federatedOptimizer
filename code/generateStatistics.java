@@ -3,7 +3,7 @@ import java.util.*;
 
 class generateStatistics {
 
-    public static void write(HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, Integer> invertIndexSubject, HashMap<String, HashMap<String, HashMap<Integer,Integer>>> invertIndexObject, String base) {
+    public static void write(HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, Integer> invertIndexSubject, HashMap<String, HashMap<String, HashMap<Integer,Integer>>> invertIndexObject, String base) {
         try {
             ObjectOutputStream out = new ObjectOutputStream(
                     new BufferedOutputStream(new FileOutputStream(base+"_css")));
@@ -45,38 +45,81 @@ class generateStatistics {
         }
     }
 
-    public static void update(Pair<Integer, HashMap<String, Integer>> cs, Integer count, HashMap<String, Integer> tmp) {
+    public static void update(Pair<Integer, HashMap<String, Pair<Integer,Integer>>> cs, Integer count, HashMap<String,Pair< Integer,Integer>> tmp) {
 
         Integer countCS =  cs.getFirst();
-        HashMap<String, Integer> psCS = cs.getSecond();
+        HashMap<String, Pair<Integer,Integer>> psCS = cs.getSecond();
         for (String p : tmp.keySet()) {
-            Integer cAux = psCS.get(p);
+            Pair<Integer,Integer> cAux = psCS.get(p);
+            Integer cAuxF, cAuxS;
             if (cAux == null) {
-                cAux = 0;
+                cAuxF = 0;
+                cAuxS = 0;
+            } else {
+                cAuxF = cAux.getFirst();
+                cAuxS = cAux.getSecond();
             }
-            Integer c = tmp.get(p) + cAux;
-            psCS.put(p, c);
+            Pair<Integer, Integer> cAux2 = tmp.get(p);
+            Integer f = cAuxF + cAux2.getFirst();
+            Integer s = cAuxS + cAux2.getSecond();
+            psCS.put(p, new Pair<Integer,Integer>(f,s));
         }
         cs.setFirst(countCS + count);
         cs.setSecond(psCS);
+    }
+
+    public static void update(HashMap<Integer, HashMap<String, HashSet<String>>> csPsOs, Integer ikey, HashMap<String, HashSet<String>> objects) {
+
+        HashMap<String, HashSet<String>> psOs = csPsOs.get(ikey);
+        if (psOs == null) {
+            psOs = new HashMap<String, HashSet<String>>();
+        }
+        for (String p : objects.keySet()) {
+            HashSet<String> os = psOs.get(p);
+            if (os == null) {
+                os = new HashSet<String>();
+            }
+            os.addAll(objects.get(p));
+            psOs.put(p, os);
+        }
+        csPsOs.put(ikey, psOs);
+    }
+
+    public static void updateNO(HashMap<Integer, HashMap<String, HashSet<String>>> csPsOs, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css) {
+
+        for (Integer cs : csPsOs.keySet()) {
+            HashMap<String, HashSet<String>> psOs = csPsOs.get(cs);
+            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsMultNO = css.get(cs);
+            Integer count = countPsMultNO.getFirst();
+            HashMap<String, Pair<Integer, Integer>> psMultNO = countPsMultNO.getSecond();
+            for (String p : psOs.keySet()) {
+                Integer num = psOs.get(p).size();
+                Integer mult = psMultNO.get(p).getFirst();
+                psMultNO.put(p, new Pair<Integer, Integer>(mult, num));
+            }
+            css.put(cs, new Pair<Integer, HashMap<String, Pair<Integer, Integer>>>(count, psMultNO));
+        }
     }
 
     public static void main(String[] args) {
 
         String fileName = args[0];
         String base = args[1];
-        HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css = new HashMap<Integer, Pair<Integer, HashMap<String, Integer>>>();
+        // CS_Id -> count -> Predicate -> < count, numDifObj >
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = new HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>();
         HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps = new HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>();
         HashMap<String, Integer> invertIndexSubject = new HashMap<String, Integer>();
         // Object -> (Property -> (CS -> Integer))
         HashMap<String, HashMap<String, HashMap<Integer, Integer>>> invertIndexObject = new HashMap<String, HashMap<String, HashMap<Integer, Integer>>>();
+        //  CS -> Property -> Objets
+        HashMap<Integer, HashMap<String, HashSet<String>>> csPsOs = new HashMap<Integer, HashMap<String, HashSet<String>>>();
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
             String l = br.readLine();
             String pe = null;
             String key = "";
             Integer ikey = -1;
-            HashMap<String, Integer> tmp = new HashMap<String, Integer>();
+            HashMap<String, Pair<Integer, Integer>> tmp = new HashMap<String, Pair<Integer,Integer>>();
             HashMap<String, HashSet<String>> objects = new HashMap<String, HashSet<String>>();
             String s = null;
             String o = null;
@@ -92,19 +135,23 @@ class generateStatistics {
                 if ((pe != null) && (!pe.equals(s))) {
                     ikey = key.hashCode();
                     // adding or updating the characteristic set
-                    Pair<Integer, HashMap<String, Integer>> cs = css.get(ikey);
+                    Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cs = css.get(ikey);
                     if (cs == null) {
                         cs = new Pair(1, tmp);
                     } else {
                         update(cs, 1, tmp);    
                     }
                     css.put(ikey, cs);
+                    update(csPsOs, ikey, objects);
                     // updating the index for subjects
                     //System.out.println("adding "+s+" to the iis");
                     invertIndexSubject.put(pe, ikey);
                     // the property values of this entity
                     for (String pAux : objects.keySet()) {
                       for (String obj : objects.get(pAux)) {
+                          if (obj.charAt(0) != '<') {
+                              continue;
+                          }
                           // check if there is information already for this object
                           HashMap<String, HashMap<Integer,Integer>> psCsCount = invertIndexObject.get(obj);
                           if (psCsCount == null) {
@@ -174,20 +221,26 @@ class generateStatistics {
                         }
                     }
                     key = "";
-                    tmp = new HashMap<String, Integer>();
+                    tmp = new HashMap<String, Pair<Integer, Integer>>();
                     objects = new HashMap<String, HashSet<String>>();
                 }
                 if (!tmp.containsKey(p)) {
                     key = key + p;
                 }                
-                Integer os = tmp.get(p);
+                Pair<Integer, Integer> os = tmp.get(p);
+                Integer fos, sos;
                 if (os == null) {
-                    os = 0;
+                    fos = 0;
+                    sos = 0;
+                } else {
+                    fos = os.getFirst();
+                    sos = os.getSecond();
                 }
-                os = os + 1;
+                fos = fos + 1;
+                os = new Pair<Integer, Integer>(fos, sos);
                 tmp.put(p, os);
                 //System.out.println("considering object "+o);
-                if (o.charAt(0) == '<') {
+                //if (o.charAt(0) == '<') {
                     //System.out.println("adding object "+o+" for predicate "+p+" and subject "+s);
                     HashSet<String> objAux = objects.get(p);
                     if (objAux == null) {
@@ -195,7 +248,7 @@ class generateStatistics {
                     }
                     objAux.add(o.trim());
                     objects.put(p, objAux);
-                }
+                //}
                 //count = count + 1;
 
                 l = br.readLine();
@@ -205,19 +258,23 @@ class generateStatistics {
             if ((s != null) && (o != null)) {
                     ikey = key.hashCode();
                     // adding or updating the characteristic set
-                    Pair<Integer, HashMap<String, Integer>> cs = css.get(ikey);
+                    Pair<Integer, HashMap<String, Pair<Integer,Integer>>> cs = css.get(ikey);
                     if (cs == null) {
                         cs = new Pair(1, tmp);
                     } else {
                         update(cs, 1, tmp);    
                     }
                     css.put(ikey, cs);
+                    update(csPsOs, ikey, objects);
                     // updating the index for subjects
                     invertIndexSubject.put(pe, ikey);
                     // the property values of this entity
                     for (String pAux : objects.keySet()) {
                       for (String obj : objects.get(pAux)) {
                           // check if there is information already for this object
+                          if (obj.charAt(0) != '<') {
+                              continue;
+                          }
                           HashMap<String, HashMap<Integer,Integer>> psCsCount = invertIndexObject.get(obj);
                           if (psCsCount == null) {
                               psCsCount = new HashMap<String, HashMap<Integer,Integer>>();
@@ -288,6 +345,7 @@ class generateStatistics {
                         }
                     }
             }
+            updateNO(csPsOs, css);
             write(css, cps, invertIndexSubject, invertIndexObject, base);
             System.out.println(css);
             System.out.println(cps);
