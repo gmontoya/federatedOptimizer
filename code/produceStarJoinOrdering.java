@@ -13,7 +13,7 @@ class produceStarJoinOrdering {
         String fileCost = args[5];
 
         HashSet<String> ps = readPS(fileStar);
-        HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css = readCSS(fileCSS);
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = readCSS(fileCSS);
         HashMap<Integer, Integer> hc = readMap(fileHC);
         HashMap<Integer, Set<String>> additionalSets = readAdditionalSets(fileAdditionalSets);
         HashMap<String, HashSet<Integer>> predicateIndex = readPredicateIndex(filePredIndex);
@@ -22,7 +22,7 @@ class produceStarJoinOrdering {
         System.out.println(order);
     }
 
-    public static LinkedList<String> getStarJoinOrdering(HashSet<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> cost) {
+    public static LinkedList<String> getStarJoinOrdering(HashSet<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> cost) {
         LinkedList<String> order = new LinkedList<String>();
 
         
@@ -74,7 +74,7 @@ class produceStarJoinOrdering {
         return ikey;
     }
 
-    public static Integer getStartCS(HashSet<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
+    public static Integer getStartCS(HashSet<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
 
         Integer key = getIKey(ps);
         //System.out.println("key: "+key);
@@ -93,7 +93,7 @@ class produceStarJoinOrdering {
         return key;
     }
 
-    public static void completeHC(HashMap<Integer, Integer> costTmp, HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost, HashMap<String, HashSet<Integer>> predicateIndex) {
+    public static void completeHC(HashMap<Integer, Integer> costTmp, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost, HashMap<String, HashSet<Integer>> predicateIndex) {
 
         while (costTmp.size() > 0) {
             HashMap<Integer, Integer> costAux = new HashMap<Integer, Integer>();
@@ -137,7 +137,7 @@ class produceStarJoinOrdering {
         }
     }
 
-    public static int computeCost(Set<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<String, HashSet<Integer>> predicateIndex) {
+    public static int computeCost(Set<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<String, HashSet<Integer>> predicateIndex) {
         int cost = 0;
         HashSet<Integer> intersection = null;
         //System.out.println(predicateIndex);
@@ -228,13 +228,13 @@ class produceStarJoinOrdering {
         return ps;
     }
 
-    public static HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> readCSS(String fileName) {
-        HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css = null;
+    public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> readCSS(String fileName) {
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> css = null;
         try {
             ObjectInputStream in = new ObjectInputStream(
                 new BufferedInputStream(new FileInputStream(fileName)));
 
-            css = (HashMap<Integer, Pair<Integer, HashMap<String, Integer>>>) in.readObject();
+            css = (HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>>) in.readObject();
             in.close();
         } catch (Exception e) {
             System.err.println("Problems writing file: "+fileName);

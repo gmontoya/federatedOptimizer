@@ -1,0 +1,6 @@
+SELECT DISTINCT * WHERE {
+  ?director <http://dbpedia.org/ontology/nationality> <http://dbpedia.org/resource/United_States> .
+  ?film <http://dbpedia.org/ontology/director> ?director .
+  ?movie <http://www.w3.org/2002/07/owl#sameAs> ?film .
+  ?movie <http://data.linkedmdb.org/resource/movie/genre> ?g
+}

@@ -19,6 +19,14 @@ class Branch<E> extends Tree<E> {
         this.right = r;
     }
 
+    public void setLeft(Tree<E> l) {
+        this.left = l;
+    }
+
+    public void setRight(Tree<E> r) {
+        this.right= r;
+    }
+
     public Tree<E> getLeft() {
         return this.left;
     }
