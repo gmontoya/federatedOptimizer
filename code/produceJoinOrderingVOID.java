@@ -126,6 +126,7 @@ class produceJoinOrderingVOID {
         String queryFile = args[0];
         String datasetsFile = args[1];
         folder = args[2];
+        String fileName = args[3];
         datasets = readDatasets(datasetsFile);
         // DatasetId --> Vector<Integer> <numTriples, numClasses, numProperties, numSubj, numObj>
         HashMap<Integer, Vector<Integer>> globalStats = new HashMap<Integer, Vector<Integer>>();
@@ -150,27 +151,15 @@ class produceJoinOrderingVOID {
         computeJoinOrderingDP(DPTable, triples);
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
         if (res != null) {
-            System.out.println("Plan: "+toString(res.getFirst()));
+            String plan = produceJoinOrderingFederation.toString(res.getFirst());
+            System.out.println("Plan: "+plan);
             System.out.println("Cardinality: "+res.getSecond().getFirst());
             System.out.println("Cost: "+res.getSecond().getSecond());
+            produceJoinOrderingFederation.write(plan, fileName);
         } else {
             System.out.println("No plan was found");
         }
         //System.out.println("DPTable at the end: "+DPTable);
-    }
-
-    public static String tripleTreeToString(Tree<Pair<Integer, Triple>> tree) {
-        String str = "";
-        if (tree instanceof Leaf<?>) {
-            Triple t  = tree.getOneElement().getSecond();
-            str = t.toString();
-        } else {
-            Branch<Pair<Integer, Triple>> b = (Branch<Pair<Integer, Triple>>) tree;
-            Tree<Pair<Integer, Triple>> l = b.getLeft();
-            Tree<Pair<Integer, Triple>> r = b.getRight();
-            str = " { " + tripleTreeToString(l) + " . " + tripleTreeToString(r) + " } ";            
-        }
-        return str;
     }
 
     public static Integer sameSource(Set<Pair<Integer, Triple>> elems) {
@@ -198,37 +187,6 @@ class produceJoinOrderingVOID {
             }
         }
         return ss;
-    }
-
-    public static String treeToString(Tree<Pair<Integer, Triple>> tree) {
-        Set<Pair<Integer, Triple>> elems = tree.getElements();
-        String str = "";
-        if (sameSource(elems) != null) {
-            str = tripleTreeToString(tree);
-            String source = datasets.get(elems.iterator().next().getFirst());
-            str = "SERVICE <"+source+"> { "+str+" } .";
-        } else {
-            Branch<Pair<Integer, Triple>> b = (Branch<Pair<Integer, Triple>>) tree;
-            Tree<Pair<Integer, Triple>> l = b.getLeft();
-            Tree<Pair<Integer, Triple>> r = b.getRight();
-            str = " { " + treeToString(l) + " } . { " + treeToString(r) + " } ";
-        }
-        return str;
-    }
-
-    public static String toString(Vector<Tree<Pair<Integer,Triple>>> plan) {
-        String str = "";
-        if (plan.size()>1) {
-            str += "{ ";
-        }
-        str += treeToString(plan.get(0));
-        for (int i = 1; i < plan.size(); i++) {
-            str += " } UNION { "+treeToString(plan.get(i));
-        }
-        if (plan.size()>1) {
-            str += " }";
-        }
-        return str;
     }
 
     // DBTable already provides cardinalities for sets of triples with one or two elements

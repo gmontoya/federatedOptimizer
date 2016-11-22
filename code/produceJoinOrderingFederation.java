@@ -16,11 +16,13 @@ class produceJoinOrderingFederation {
     static Vector<HashMap<Integer, Integer>> costs = new Vector<HashMap<Integer, Integer>>();
     static Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>> cps = new Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>>();
     static Vector<String> datasets = new Vector<String>();
+    static Vector<String> endpoints = new Vector<String>();
     static String folder;
     static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexes = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
     static boolean distinct;
     static List<Var> projectedVariables;
     static boolean includeMultiplicity;
+    static boolean original;
 
     public static HashMap<Integer, Integer> getCost(Integer ds) {
         Integer pos = datasetsIdPos.get(ds);
@@ -171,7 +173,9 @@ class produceJoinOrderingFederation {
             String l = br.readLine();
             //Vector<String> ps = new Vector<String>();
             while (l!=null) {
-                ps.add(l);
+                StringTokenizer st = new StringTokenizer(l);
+                ps.add(st.nextToken());
+                endpoints.add(st.nextToken());
                 l = br.readLine();
             }
             br.close();
@@ -189,6 +193,8 @@ class produceJoinOrderingFederation {
         folder = args[2];
         long budget = Long.parseLong(args[3]);
         includeMultiplicity = Boolean.parseBoolean(args[4]);
+        original = Boolean.parseBoolean(args[5]);
+        String fileName = args[6];
         datasets = readDatasets(datasetsFile);
         // Predicate --> DatasetId --> set of CSId
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex = readPredicateIndexes(folder, datasets); 
@@ -245,13 +251,27 @@ class produceJoinOrderingFederation {
         computeJoinOrderingDP(DPTable, triples);
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
         if (res != null) {
-            System.out.println("Plan: "+toString(res.getFirst()));
+            String plan = toString(res.getFirst());
+            System.out.println("Plan: "+plan);
             System.out.println("Cardinality: "+res.getSecond().getFirst());
             System.out.println("Cost: "+res.getSecond().getSecond());
+            write(plan, fileName);
         } else {
             System.out.println("No plan was found");
         }
         //System.out.println("DPTable at the end: "+DPTable);
+    }
+
+    public static void write(String content, String fileName) {
+
+        try {
+            OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileName));
+            osw.write(content+"\n");
+            osw.close();
+        } catch (IOException e) {
+            System.err.println("Problems writing file: "+fileName);
+            System.exit(1);
+        }
     }
 
     public static String tripleTreeToString(Tree<Pair<Integer, Triple>> tree) {
@@ -318,7 +338,7 @@ class produceJoinOrderingFederation {
         String str = "";
         if (sameSource(elems) != null) {
             str = tripleTreeToString(tree);
-            String source = datasets.get(elems.iterator().next().getFirst());
+            String source = endpoints.get(elems.iterator().next().getFirst());
             str = "SERVICE <"+source+"> { "+str+" } .";
         } else {
             Branch<Pair<Integer, Triple>> b = (Branch<Pair<Integer, Triple>>) tree;
@@ -762,7 +782,8 @@ class produceJoinOrderingFederation {
         Integer count = cPs.getFirst();
         //System.out.println("p: "+p);
         for (String p1 : ps1) {
-            if (!p1.equals(p)) {
+            // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
+            if (original || !p1.equals(p)) {
                 //System.out.println("p1: "+p1);
                 Triple t = map1.get(p1);
                 Node s = t.getSubject();
