@@ -324,12 +324,16 @@ class mergeCharacteristicSetsPlus {
             }
             k++;
         }*/
-        writeCSS(reducedCSS, fileCSS2);
-        writeCPS(cps1, fileCPS2);
-        writeIIS(iis1, fileIIS2);
-        writeIIO(iio1, fileIIO2);
-        System.out.println("");
-        System.out.println(css1.size()+" characteristic sets have been reduced to "+reducedCSS.size());
+        if (css1.size() != reducedCSS.size()) {
+            writeCSS(reducedCSS, fileCSS2);
+            writeCPS(cps1, fileCPS2);
+            writeIIS(iis1, fileIIS2);
+            writeIIO(iio1, fileIIO2);
+            System.out.println("");
+            System.out.println(css1.size()+" characteristic sets have been reduced to "+reducedCSS.size());
+        } else {
+            System.out.println("There were only "+reducedCSS.size()+" characteristic sets");
+        }
         //System.out.println(reducedCSS);
         //System.out.println(cps1);
         //System.out.println(iis1);

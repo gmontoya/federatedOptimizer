@@ -347,10 +347,10 @@ class generateStatistics {
             }
             updateNO(csPsOs, css);
             write(css, cps, invertIndexSubject, invertIndexObject, base);
-            System.out.println(css);
-            System.out.println(cps);
-            System.out.println(invertIndexSubject);
-            System.out.println(invertIndexObject);
+            //System.out.println(css);
+            //System.out.println(cps);
+            //System.out.println(invertIndexSubject);
+            //System.out.println(invertIndexObject);
         } catch (IOException e) {
             System.err.println("Problems reading file: "+fileName);
             System.exit(1);
