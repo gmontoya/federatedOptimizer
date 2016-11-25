@@ -116,7 +116,7 @@ public class SingleEndpointProxy2 extends Thread {
             HashMap<String, String> map = new HashMap<String, String>();
             String postQuery = read(inFromClient, map);
             //inFromClient.close();
-            System.out.println("postQuery: "+postQuery);
+            //System.out.println("postQuery: "+postQuery);
                     //httpQueryString = httpQueryString.substring(6);
             URIBuilder uriB = new URIBuilder().setScheme("http").setHost(this.endpointAddress).setPort(this.endpointPort);
             setParameters(uriB, httpQueryString);

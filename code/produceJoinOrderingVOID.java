@@ -47,7 +47,7 @@ class produceJoinOrderingVOID {
         String classQueryStr = "SELECT DISTINCT * WHERE {    ?pp void:class ?class .    ?pp void:entities ?numEntities }";
         for (int i = 0; i < datasets.size(); i++) {
             String datasetStr = datasets.get(i);
-            String fileName = folder+"/"+datasetStr+"_void.n3";
+            String fileName = folder+"/"+datasetStr+"/"+datasetStr.toLowerCase()+"_void.n3";
             Model m = ModelFactory.createDefaultModel();
             m.read(fileName);
 

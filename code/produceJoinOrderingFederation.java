@@ -82,7 +82,7 @@ class produceJoinOrderingFederation {
             String datasetStr2 = datasets.get(ds2);
             String fileCPS = folder;
             if (datasetStr1.equals(datasetStr2)) {
-                fileCPS += "/statistics"+datasetStr1+"_cps_reduced10000CS";
+                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_reduced10000CS";
             } else {
                 fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_reduced10000CS_MIP";
             }
@@ -96,16 +96,16 @@ class produceJoinOrderingFederation {
         int pos = css.size();
         datasetsIdPos.put(ds, pos);
         String datasetStr = datasets.get(ds);
-        String fileCSS = folder+"/statistics"+datasetStr+"_css_reduced10000CS";
+        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_reduced10000CS";
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> cs = produceStarJoinOrdering.readCSS(fileCSS);
         css.add(pos, cs);
-        String fileHC = folder+"/statistics"+datasetStr+"_hc_reduced10000CS";
+        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_reduced10000CS";
         HashMap<Integer, Integer> hc = produceStarJoinOrdering.readMap(fileHC);
         hcs.add(pos, hc);
-        String fileAdditionalSets = folder+"/statistics"+datasetStr+"_as_reduced10000CS";
+        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_reduced10000CS";
         HashMap<Integer, Set<String>> ass = produceStarJoinOrdering.readAdditionalSets(fileAdditionalSets);
         additionalSets.add(pos, ass);
-        String fileCost = folder+"/statistics"+datasetStr+"_cost_reduced10000CS";
+        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_reduced10000CS";
         HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
         costs.add(pos, cost);
         return pos;
@@ -140,7 +140,7 @@ class produceJoinOrderingFederation {
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predIndex = new HashMap<String, HashMap<Integer,HashSet<Integer>>>();
         for (int i = 0; i < datasets.size(); i++) {
             String datasetStr = datasets.get(i);
-            String fileName = folder+"/statistics"+datasetStr+"_pi_reduced10000CS";
+            String fileName = folder+"/"+datasetStr+"/statistics"+datasetStr+"_pi_reduced10000CS";
             
             try {
                 ObjectInputStream in = new ObjectInputStream(
@@ -205,7 +205,7 @@ class produceJoinOrderingFederation {
         // sub-query --> <order, <cardinality,cost>>
         HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
         Vector<HashSet<Triple>> stars = getStars(bgp, budget, predicateIndex); //css, predicateIndex, cost);
-        //System.out.println("stars: "+stars);
+        System.out.println("stars: "+stars);
         int i = 1;
         HashSet<Triple> triples = new HashSet<Triple>();
         HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map = new HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>>();
@@ -221,11 +221,11 @@ class produceJoinOrderingFederation {
                 Triple r = renamed.get(t);
                 s.add(r);
             }
-            //System.out.println("updated bgp "+bgp+" for star : "+s+" and for nn: "+nn);
+            System.out.println("updated bgp "+bgp+" for star : "+s+" and for nn: "+nn);
             // current star is used for the join ordering, it does not contain any metanode
             if (s.size()>0) {
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrder(s, predicateIndex); //, css, hc, additionalSets, predicateIndex, cost);
-                //System.out.println("join ordering for the star: "+p);
+                System.out.println("join ordering for the star: "+p);
                 if (p.size() ==0) {  // test case missing sources for a star
                     triples.clear();
                     map.clear();
@@ -241,16 +241,16 @@ class produceJoinOrderingFederation {
             //DPTable.put(ns, new Pair<Vector<Triple>, Pair<Long,Long>>(p, new Pair<Long, Long>(cost(p, css, predicateIndex, cost),0L)));
         }
         
-        //System.out.println("map: "+map);
-        //System.out.println("DPTable before add.. :"+DPTable);
+        System.out.println("map: "+map);
+        System.out.println("DPTable before add.. :"+DPTable);
         addRemainingTriples(DPTable, bgp, predicateIndex, triples, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
-        //System.out.println("DPTable after add.. :"+DPTable);
+        System.out.println("DPTable after add.. :"+DPTable);
         // may have to consider already intermediate results in the CP estimation for the cost
         estimateSelectivityCP(DPTable, predicateIndex, triples); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
-        //System.out.println("DPTable after CP estimation.. :"+DPTable);
+        System.out.println("DPTable after CP estimation.. :"+DPTable);
         computeJoinOrderingDP(DPTable, triples);
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
-        if (res != null) {
+        if (res != null && res.getFirst().size() > 0) {
             String plan = toString(res.getFirst());
             System.out.println("Plan: "+plan);
             System.out.println("Cardinality: "+res.getSecond().getFirst());
@@ -259,7 +259,7 @@ class produceJoinOrderingFederation {
         } else {
             System.out.println("No plan was found");
         }
-        //System.out.println("DPTable at the end: "+DPTable);
+        System.out.println("DPTable at the end: "+DPTable);
     }
 
     public static void write(String content, String fileName) {
@@ -356,6 +356,9 @@ class produceJoinOrderingFederation {
         for (Var v : projectedVariables) {
             str += v.toString()+" ";
         }
+        if (plan.size()>1) {
+            str += " { ";
+        }
         str += " { ";
         //}
 
@@ -363,9 +366,10 @@ class produceJoinOrderingFederation {
         for (int i = 1; i < plan.size(); i++) {
             str += " } UNION { "+treeToString(plan.get(i));
         }
-        //if (plan.size()>1) {
+        str += " }";
+        if (plan.size()>1) {
             str += " }";
-        //}
+        }
         return str;
     }
     public static HashSet<Triple> rename(HashSet<Triple> star, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Triple,Triple> renamed) {
