@@ -251,7 +251,7 @@ class produceJoinOrderingFederation {
         computeJoinOrderingDP(DPTable, triples);
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
         if (res != null && res.getFirst().size() > 0) {
-            String plan = toString(res.getFirst());
+            String plan = toString(res.getFirst(), distinct, projectedVariables, endpoints);
             System.out.println("Plan: "+plan);
             System.out.println("Cardinality: "+res.getSecond().getFirst());
             System.out.println("Cost: "+res.getSecond().getSecond());
@@ -333,7 +333,7 @@ class produceJoinOrderingFederation {
         return ss;
     }
 
-    public static String treeToString(Tree<Pair<Integer, Triple>> tree) {
+    public static String treeToString(Tree<Pair<Integer, Triple>> tree, Vector<String> endpoints) {
         Set<Pair<Integer, Triple>> elems = tree.getElements();
         String str = "";
         if (sameSource(elems) != null) {
@@ -344,12 +344,13 @@ class produceJoinOrderingFederation {
             Branch<Pair<Integer, Triple>> b = (Branch<Pair<Integer, Triple>>) tree;
             Tree<Pair<Integer, Triple>> l = b.getLeft();
             Tree<Pair<Integer, Triple>> r = b.getRight();
-            str = " { " + treeToString(l) + " } . { " + treeToString(r) + " } ";
+            str = " { " + treeToString(l, endpoints) + " } . { " + treeToString(r, endpoints) + " } ";
         }
         return str;
     }
 
-    public static String toString(Vector<Tree<Pair<Integer,Triple>>> plan) {
+    public static String toString(Vector<Tree<Pair<Integer,Triple>>> plan, boolean distinct, List<Var> projectedVariables, Vector<String> endpoints) {
+
         String str = "";
         //if (plan.size()>1) {
             str += " SELECT "+(distinct?"DISTINCT ":"");
@@ -362,9 +363,9 @@ class produceJoinOrderingFederation {
         str += " { ";
         //}
 
-        str += treeToString(plan.get(0));
+        str += treeToString(plan.get(0), endpoints);
         for (int i = 1; i < plan.size(); i++) {
-            str += " } UNION { "+treeToString(plan.get(i));
+            str += " } UNION { "+treeToString(plan.get(i), endpoints);
         }
         str += " }";
         if (plan.size()>1) {

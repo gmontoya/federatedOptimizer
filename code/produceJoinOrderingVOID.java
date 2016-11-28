@@ -17,10 +17,11 @@ import com.hp.hpl.jena.sparql.core.Var;
 class produceJoinOrderingVOID {
 
     static Vector<String> datasets = new Vector<String>();
+    static Vector<String> endpoints = new Vector<String>();
     static String folder;
 
-    //static boolean distinct;
-    //static List<Var> projectedVariables;
+    static boolean distinct;
+    static List<Var> projectedVariables;
 
     public static Vector<String> readDatasets(String file) {
         Vector<String> ps = new Vector<String>();
@@ -29,7 +30,9 @@ class produceJoinOrderingVOID {
             String l = br.readLine();
             //Vector<String> ps = new Vector<String>();
             while (l!=null) {
-                ps.add(l);
+                StringTokenizer st = new StringTokenizer(l);
+                ps.add(st.nextToken());
+                endpoints.add(st.nextToken());
                 l = br.readLine();
             }
             br.close();
@@ -137,8 +140,8 @@ class produceJoinOrderingVOID {
         loadStatistics(globalStats, propertyStats, classStats);
         //System.out.println("predicateIndex size: "+predicateIndex.size());
         BGP bgp = new BGP(queryFile);
-        //distinct = bgp.getDistinct();
-        //projectedVariables = bgp.getProjectedVariables();
+        distinct = bgp.getDistinct();
+        projectedVariables = bgp.getProjectedVariables();
         // sub-query --> <order, <cardinality,cost>>
         HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
         HashSet<Triple> triples = new HashSet<Triple>();
@@ -151,7 +154,7 @@ class produceJoinOrderingVOID {
         computeJoinOrderingDP(DPTable, triples);
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
         if (res != null) {
-            String plan = produceJoinOrderingFederation.toString(res.getFirst());
+            String plan = produceJoinOrderingFederation.toString(res.getFirst(), distinct, projectedVariables, endpoints);
             System.out.println("Plan: "+plan);
             System.out.println("Cardinality: "+res.getSecond().getFirst());
             System.out.println("Cost: "+res.getSecond().getSecond());
