@@ -6,10 +6,16 @@ import com.hp.hpl.jena.graph.NodeFactory;
 import com.hp.hpl.jena.sparql.core.Var;
 
 class produceJoinOrderingFederationWithObjCS {
-    // DatasetId --> Position, for data related to CS
-    static HashMap<Integer, Integer> datasetsIdPos = new HashMap<Integer,Integer>();
-    // DatasetId --> DatasetId --> Position, for data related to CP
-    static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPos = new HashMap<Integer, HashMap<Integer,Integer>>();
+    // DatasetId --> Position, for data related to CS-Subj
+    static HashMap<Integer, Integer> datasetsIdPosSubj = new HashMap<Integer,Integer>();
+    // DatasetId --> Position, for data related to CS-Obj
+    static HashMap<Integer, Integer> datasetsIdPosObj = new HashMap<Integer,Integer>();
+
+    // DatasetId --> DatasetId --> Position, for data related to CP between CS-Subj
+    static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosSubj = new HashMap<Integer, HashMap<Integer,Integer>>();
+    // DatasetId --> DatasetId --> Position, for data related to CP between CS-Obj
+    static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosObj = new HashMap<Integer, HashMap<Integer,Integer>>();
+
     static Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>> cssSubj = new Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>>();
     static Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>> cssObj = new Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>>();
     static Vector<HashMap<Integer, Integer>> hcsSubj = new Vector<HashMap<Integer, Integer>>();
@@ -31,102 +37,190 @@ class produceJoinOrderingFederationWithObjCS {
     static boolean original;
 
     public static HashMap<Integer, Integer> getCostSubj(Integer ds) {
-        Integer pos = datasetsIdPos.get(ds);
+        Integer pos = datasetsIdPosSubj.get(ds);
         if (pos == null) {
-            pos = loadFiles(ds);
+            pos = loadFilesSubj(ds);
         }
         HashMap<Integer, Integer> cost = costsSubj.get(pos);
         return cost;
     }
 
-    public static HashMap<Integer, Set<String>> getAdditionalSetsSubj(Integer ds) {
-        Integer pos = datasetsIdPos.get(ds);
+    public static HashMap<Integer, Integer> getCostObj(Integer ds) {
+        Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
-            pos = loadFiles(ds);
+            pos = loadFilesObj(ds);
+        }
+        HashMap<Integer, Integer> cost = costsObj.get(pos);
+        return cost;
+    }
+
+    public static HashMap<Integer, Set<String>> getAdditionalSetsSubj(Integer ds) {
+        Integer pos = datasetsIdPosSubj.get(ds);
+        if (pos == null) {
+            pos = loadFilesSubj(ds);
         }
         HashMap<Integer, Set<String>> ass = additionalSetsSubj.get(pos);
         return ass;
     }
 
-    public static HashMap<Integer, Integer> getHC(Integer ds) {
-        Integer pos = datasetsIdPos.get(ds);
+    public static HashMap<Integer, Set<String>> getAdditionalSetsObj(Integer ds) {
+        Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
-            pos = loadFiles(ds);
+            pos = loadFilesObj(ds);
         }
-        HashMap<Integer, Integer> hc = hcs.get(pos);
+        HashMap<Integer, Set<String>> ass = additionalSetsObj.get(pos);
+        return ass;
+    }
+
+    public static HashMap<Integer, Integer> getHCSubj(Integer ds) {
+        Integer pos = datasetsIdPosSubj.get(ds);
+        if (pos == null) {
+            pos = loadFilesSubj(ds);
+        }
+        HashMap<Integer, Integer> hc = hcsSubj.get(pos);
         return hc;
     }
 
-    public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> getCSS(Integer ds) {
-        Integer pos = datasetsIdPos.get(ds);
+    public static HashMap<Integer, Integer> getHCObj(Integer ds) {
+        Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
-            pos = loadFiles(ds);
+            pos = loadFilesObj(ds);
         }
-        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> cs = css.get(pos);
+        HashMap<Integer, Integer> hc = hcsObj.get(pos);
+        return hc;
+    }
+
+    public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> getCSSSubj(Integer ds) {
+        Integer pos = datasetsIdPosSubj.get(ds);
+        if (pos == null) {
+            pos = loadFilesSubj(ds);
+        }
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> cs = cssSubj.get(pos);
         return cs;
     }
+
+    public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> getCSSObj(Integer ds) {
+        Integer pos = datasetsIdPosObj.get(ds);
+        if (pos == null) {
+            pos = loadFilesObj(ds);
+        }
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> cs = cssObj.get(pos);
+        return cs;
+    }
+
 // HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPos
-    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> getCPS(Integer ds1, Integer ds2) {
+    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> getCPSSubj(Integer ds1, Integer ds2) {
         boolean loaded = false;
-        HashMap<Integer, Integer> ds2Pos = datasetsIdsPos.get(ds1);
+        HashMap<Integer, Integer> ds2Pos = datasetsIdsPosSubj.get(ds1);
         Integer pos = -1;
         HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> c =null;
         if (ds2Pos != null) {
             pos = ds2Pos.get(ds2);
             if (pos != null) {
                 loaded = true;
-                c = cps.get(pos);
+                c = cpsSubj.get(pos);
             }
         } else {
             ds2Pos = new HashMap<Integer, Integer>();
         }
         if (!loaded) {
-            pos = cps.size();
+            pos = cpsSubj.size();
             ds2Pos.put(ds2, pos);
-            datasetsIdsPos.put(ds1, ds2Pos);
+            datasetsIdsPosSubj.put(ds1, ds2Pos);
             String datasetStr1 = datasets.get(ds1);
             String datasetStr2 = datasets.get(ds2);
             String fileCPS = folder;
             if (datasetStr1.equals(datasetStr2)) {
-                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_reduced10000CS";
+                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_reduced"; //10000CS";
             } else {
-                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_reduced10000CS_MIP";
+                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_reduced_MIP"; //10000CS_MIP";
             }
             c = readCPS(fileCPS);
-            cps.add(pos, c);
+            cpsSubj.add(pos, c);
         } 
         return c;
     }
 
-    public static int loadFiles(Integer ds) {
-        int pos = css.size();
-        datasetsIdPos.put(ds, pos);
+    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> getCPSObj(Integer ds1, Integer ds2) {
+        boolean loaded = false;
+        HashMap<Integer, Integer> ds2Pos = datasetsIdsPosObj.get(ds1);
+        Integer pos = -1;
+        HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> c =null;
+        if (ds2Pos != null) {
+            pos = ds2Pos.get(ds2);
+            if (pos != null) {
+                loaded = true;
+                c = cpsObj.get(pos);
+            }
+        } else {
+            ds2Pos = new HashMap<Integer, Integer>();
+        }
+        if (!loaded) {
+            pos = cpsObj.size();
+            ds2Pos.put(ds2, pos);
+            datasetsIdsPosObj.put(ds1, ds2Pos);
+            String datasetStr1 = datasets.get(ds1);
+            String datasetStr2 = datasets.get(ds2);
+            String fileCPS = folder;
+            if (datasetStr1.equals(datasetStr2)) {
+                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_obj_reduced"; //10000CS";
+            } else {
+                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_obj_reduced_MIP"; //10000CS_MIP";
+            }
+            c = readCPS(fileCPS);
+            cpsObj.add(pos, c);
+        } 
+        return c;
+    }
+
+    public static int loadFilesSubj(Integer ds) {
+        int pos = cssSubj.size();
+        datasetsIdPosSubj.put(ds, pos);
         String datasetStr = datasets.get(ds);
-        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_reduced10000CS";
+        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_reduced"; //10000CS";
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> cs = produceStarJoinOrdering.readCSS(fileCSS);
-        css.add(pos, cs);
-        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_reduced10000CS";
+        cssSubj.add(pos, cs);
+        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_reduced"; //10000CS";
         HashMap<Integer, Integer> hc = produceStarJoinOrdering.readMap(fileHC);
-        hcs.add(pos, hc);
-        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_reduced10000CS";
+        hcsSubj.add(pos, hc);
+        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_reduced"; //10000CS";
         HashMap<Integer, Set<String>> ass = produceStarJoinOrdering.readAdditionalSets(fileAdditionalSets);
-        additionalSets.add(pos, ass);
-        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_reduced10000CS";
+        additionalSetsSubj.add(pos, ass);
+        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_reduced"; //10000CS";
         HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
-        costs.add(pos, cost);
+        costsSubj.add(pos, cost);
         return pos;
     }
 
-    public static HashMap<String, HashSet<Integer>> getPredicateIndex(Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+    public static int loadFilesObj(Integer ds) {
+        int pos = cssObj.size();
+        datasetsIdPosObj.put(ds, pos);
+        String datasetStr = datasets.get(ds);
+        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_obj_reduced"; //10000CS";
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> cs = produceStarJoinOrdering.readCSS(fileCSS);
+        cssObj.add(pos, cs);
+        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_obj_reduced"; //10000CS";
+        HashMap<Integer, Integer> hc = produceStarJoinOrdering.readMap(fileHC);
+        hcsObj.add(pos, hc);
+        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_obj_reduced"; //10000CS";
+        HashMap<Integer, Set<String>> ass = produceStarJoinOrdering.readAdditionalSets(fileAdditionalSets);
+        additionalSetsObj.add(pos, ass);
+        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_obj_reduced"; //10000CS";
+        HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
+        costsObj.add(pos, cost);
+        return pos;
+    }
+
+    public static HashMap<String, HashSet<Integer>> getPredicateIndexSubj(Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         //System.out.println("getPredicateIndex for dataset "+ds);
-        Integer pos = datasetsIdPos.get(ds);
+        Integer pos = datasetsIdPosSubj.get(ds);
         //System.out.println("it may be in position "+pos);
         HashMap<String, HashSet<Integer>> predIndex = null;
         if (pos == null) {
-            pos = loadFiles(ds);
+            pos = loadFilesSubj(ds);
         }
         //System.out.println("its position is: "+pos+". current size of predicate indexes: "+predicateIndexes.size());
-        predIndex = predicateIndexes.get(pos);
+        predIndex = predicateIndexesSubj.get(pos);
         if (predIndex == null) {
             predIndex = new HashMap<String, HashSet<Integer>>();
             for (String p : predicateIndex.keySet()) {
@@ -136,17 +230,49 @@ class produceJoinOrderingFederationWithObjCS {
                     predIndex.put(p, css);
                 }
             }
-            predicateIndexes.put(pos, predIndex);
+            predicateIndexesSubj.put(pos, predIndex);
         }
         return predIndex;
     }
 
-    public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexes(String folder, Vector<String> datasets) {
+    public static HashMap<String, HashSet<Integer>> getPredicateIndexObj(Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+        //System.out.println("getPredicateIndex for dataset "+ds);
+        Integer pos = datasetsIdPosObj.get(ds);
+        //System.out.println("it may be in position "+pos);
+        HashMap<String, HashSet<Integer>> predIndex = null;
+        if (pos == null) {
+            pos = loadFilesObj(ds);
+        }
+        //System.out.println("its position is: "+pos+". current size of predicate indexes: "+predicateIndexes.size());
+        predIndex = predicateIndexesObj.get(pos);
+        if (predIndex == null) {
+            predIndex = new HashMap<String, HashSet<Integer>>();
+            for (String p : predicateIndex.keySet()) {
+                HashMap<Integer,HashSet<Integer>> dsCss = predicateIndex.get(p);
+                HashSet<Integer> css = dsCss.get(ds);
+                if (css != null) {
+                    predIndex.put(p, css);
+                }
+            }
+            predicateIndexesObj.put(pos, predIndex);
+        }
+        return predIndex;
+    }
+
+    public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexesSubj(String folder, Vector<String> datasets) {
+        return readPredicateIndexes(folder, datasets, "");
+    }
+
+    public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexesObj(String folder, Vector<String> datasets) {
+        return readPredicateIndexes(folder, datasets, "_obj");
+    }
+
+    public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexes(String folder, Vector<String> datasets, String suffix) {
 
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predIndex = new HashMap<String, HashMap<Integer,HashSet<Integer>>>();
         for (int i = 0; i < datasets.size(); i++) {
             String datasetStr = datasets.get(i);
-            String fileName = folder+"/"+datasetStr+"/statistics"+datasetStr+"_pi_reduced10000CS";
+            String fileName = folder+"/"+datasetStr+"/statistics"+datasetStr+"_pi"+suffix+"_reduced"; //10000CS";
             
             try {
                 ObjectInputStream in = new ObjectInputStream(
@@ -203,18 +329,20 @@ class produceJoinOrderingFederationWithObjCS {
         String fileName = args[6];
         datasets = readDatasets(datasetsFile);
         // Predicate --> DatasetId --> set of CSId
-        HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex = readPredicateIndexes(folder, datasets); 
+        HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj = readPredicateIndexesSubj(folder, datasets); 
+        HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj = readPredicateIndexesObj(folder, datasets); 
         //System.out.println("predicateIndex size: "+predicateIndex.size());
         BGP bgp = new BGP(queryFile);
         distinct = bgp.getDistinct();
         projectedVariables = bgp.getProjectedVariables();
         // sub-query --> <order, <cardinality,cost>>
         HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
-        Vector<HashSet<Triple>> stars = getStars(bgp, budget, predicateIndex); //css, predicateIndex, cost);
+        Vector<HashSet<Triple>> stars = getStars(bgp, budget, predicateIndexSubj, predicateIndexObj); //css, predicateIndex, cost);
         System.out.println("stars: "+stars);
         int i = 1;
         HashSet<Triple> triples = new HashSet<Triple>();
         HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map = new HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>>();
+
         for (HashSet<Triple> s : stars) {
             // consider that previous star may be connected to the current star
             HashMap<Triple,Triple> renamed = new HashMap<Triple,Triple>();
@@ -230,7 +358,13 @@ class produceJoinOrderingFederationWithObjCS {
             System.out.println("updated bgp "+bgp+" for star : "+s+" and for nn: "+nn);
             // current star is used for the join ordering, it does not contain any metanode
             if (s.size()>0) {
-                Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrder(s, predicateIndex); //, css, hc, additionalSets, predicateIndex, cost);
+                
+                Vector<Tree<Pair<Integer,Triple>>> p = null;
+                if (centerIsSubject(s)) {
+                    p = getStarJoinOrderSubj(s, predicateIndexSubj); 
+                } else {
+                    p = getStarJoinOrderObj(s, predicateIndexObj); 
+                }
                 System.out.println("join ordering for the star: "+p);
                 if (p.size() ==0) {  // test case missing sources for a star
                     triples.clear();
@@ -249,10 +383,10 @@ class produceJoinOrderingFederationWithObjCS {
         
         System.out.println("map: "+map);
         System.out.println("DPTable before add.. :"+DPTable);
-        addRemainingTriples(DPTable, bgp, predicateIndex, triples, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
+        addRemainingTriples(DPTable, bgp, predicateIndexSubj, predicateIndexObj, triples, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
         System.out.println("DPTable after add.. :"+DPTable);
         // may have to consider already intermediate results in the CP estimation for the cost
-        estimateSelectivityCP(DPTable, predicateIndex, triples); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
+        estimateSelectivityCP(DPTable, predicateIndexSubj, predicateIndexObj, triples); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
         System.out.println("DPTable after CP estimation.. :"+DPTable);
         computeJoinOrderingDP(DPTable, triples);
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
@@ -378,12 +512,68 @@ class produceJoinOrderingFederationWithObjCS {
         }
         return str;
     }
+
+    public static Node getCenter(Set<Triple> ts) {
+        Node s = null;
+        Node o = null;
+        Node c = null;
+        for (Triple t : ts) {
+            if (s == null || o == null) {
+                s = t.getSubject();
+                o = t.getObject();
+                c = s;
+            } else {
+                if (s.equals(t.getSubject())) {
+                    c = s;
+                } else if (o.equals(t.getObject())) {
+                    c = o;
+                }
+                break;
+            }
+        }
+        return c;
+    }
+
+    public static Node getCenter(Tree<Pair<Integer, Triple>> tree) {
+        Set<Pair<Integer,Triple>> es = tree.getElements();
+        Node s = null;
+        Node o = null;
+        Node c = null;
+        for (Pair<Integer,Triple> pair : es) {
+            Triple t  = pair.getSecond();
+            if (s == null || o == null) {
+                s = t.getSubject();
+                o = t.getObject();
+                c = s;
+            } else {
+                if (s.equals(t.getSubject())) {
+                    c = s;
+                } else if (o.equals(t.getObject())) {
+                    c = o;
+                }
+                break;
+            }
+        }
+        return c;
+    }
+
+    public static boolean centerIsSubject(Set<Triple> ts) {
+        Node c = getCenter(ts);
+        return c.equals(ts.iterator().next().getSubject());
+    }
+
+    public static boolean centerIsSubject(Tree<Pair<Integer, Triple>> tree) {
+        Node c = getCenter(tree);
+        return c.equals(tree.getOneElement().getSecond().getSubject());
+    }
+
     public static HashSet<Triple> rename(HashSet<Triple> star, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Triple,Triple> renamed) {
 
         HashMap<Node, Node> invertMap = new HashMap<Node,Node>();
         for (Node n : map.keySet()) {
-            Node s = map.get(n).get(0).getOneElement().getSecond().getSubject();
-            invertMap.put(s, n);
+            Tree<Pair<Integer,Triple>> tree = map.get(n).get(0);
+            Node c = getCenter(tree);
+            invertMap.put(c, n);
         }
         HashSet<Triple> newStar = new HashSet<Triple>();
         for (Triple t : star) {
@@ -501,39 +691,58 @@ class produceJoinOrderingFederationWithObjCS {
         return card;
     }
 
-    public static void addRemainingTriples(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, BGP bgp, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashSet<Triple> triples, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
+    public static void addRemainingTriples(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, BGP bgp, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Triple> triples, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
 //HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex, HashSet<Triple> triples, HashMap<Integer, Integer> cost, HashMap<Node, Tree<Triple>> map,HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets) {
 
         List<Triple> ts = bgp.getBody();
         //System.out.println("ts: "+ts);
         for (Triple t : ts) {
-            Node s = t.getSubject();
-            Node p = t.getPredicate();
-            Node o = t.getObject();
-            HashSet<Triple> tps1 = new HashSet<Triple>();
-            if (map.containsKey(s)) {
-                Node e = map.get(s).get(0).getOneElement().getSecond().getSubject();
-                Vector<Tree<Pair<Integer,Triple>>> tmp = map.get(s);
-                for (Tree<Pair<Integer,Triple>> tmpTree : tmp) {
-                    for (Pair<Integer,Triple> pair : tmpTree.getElements()) {
-                        tps1.add(pair.getSecond());
-                    }
-                }
-                s = e;
-            }
-            if (map.containsKey(o)) {
-                Node e = map.get(o).get(0).getOneElement().getSecond().getSubject();
-                o = e;
-            }
             // triples and newEntry include the triple with metanodes
             triples.add(t); 
             HashSet<Triple> newEntry = new HashSet<Triple>();
             newEntry.add(t);
-            // but for the join ordering the metanodes are replaced by the star variable
-            t = new Triple(s, p, o);    
-            tps1.add(t);
 
-            addCS(tps1, newEntry, predicateIndex, DPTable); //css, predicateIndex, DPTable, hc, additionalSets, cost);
+            Node s = t.getSubject();
+            Node p = t.getPredicate();
+            Node o = t.getObject();
+            HashSet<Triple> tps1 = new HashSet<Triple>();
+            HashSet<Triple> tps2 = new HashSet<Triple>();
+            if (map.containsKey(s)) {
+                Tree<Pair<Integer, Triple>> tree = map.get(s).get(0);
+                Node c = getCenter(tree);
+                boolean subjectCenter = centerIsSubject(tree);
+                if (subjectCenter) {
+                    Vector<Tree<Pair<Integer,Triple>>> tmp = map.get(s);
+                    for (Tree<Pair<Integer,Triple>> tmpTree : tmp) {
+                        for (Pair<Integer,Triple> pair : tmpTree.getElements()) {
+                            tps1.add(pair.getSecond());
+                        }
+                    }
+                }
+                s = c;
+            }
+            if (map.containsKey(o)) {
+                Tree<Pair<Integer, Triple>> tree = map.get(s).get(0);
+                Node c = getCenter(tree);
+                boolean objectCenter = !centerIsSubject(tree);
+                if (objectCenter) {
+                    Vector<Tree<Pair<Integer,Triple>>> tmp = map.get(o);
+                    for (Tree<Pair<Integer,Triple>> tmpTree : tmp) {
+                        for (Pair<Integer,Triple> pair : tmpTree.getElements()) {
+                            tps2.add(pair.getSecond());
+                        }
+                    }
+                }
+                o = c;
+            }
+
+            // but for the join ordering the metanodes are replaced by the star variable
+            t = new Triple(s, p, o); 
+            tps1.add(t);
+            tps2.add(t);
+
+            addCSSubj(tps1, newEntry, predicateIndexSubj, DPTable); //css, predicateIndex, DPTable, hc, additionalSets, cost);
+            addCSObj(tps2, newEntry, predicateIndexObj, DPTable);
         }
     }
 
@@ -581,9 +790,14 @@ class produceJoinOrderingFederationWithObjCS {
         }
     }
 */
-    public static boolean existsCPConnection(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static boolean existsCPConnectionSubj(HashSet<Triple> sq1, HashSet<Triple> sq2) {
 
-        return existsCSConnection(sq1) && existsCSConnection(sq2) && (existsCPConnectionAux(sq1, sq2) || existsCPConnectionAux(sq2, sq1));
+        return existsCSConnectionSubj(sq1) && existsCSConnectionSubj(sq2) && (existsCPConnectionAux(sq1, sq2) || existsCPConnectionAux(sq2, sq1));
+    }
+
+    public static boolean existsCPConnectionObj(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+
+        return existsCSConnectionObj(sq1) && existsCSConnectionObj(sq2) && (existsCPConnectionAux(sq1, sq2) || existsCPConnectionAux(sq2, sq1));
     }
 
     public static boolean existsCPConnectionAux(HashSet<Triple> sq1, HashSet<Triple> sq2) {
@@ -597,7 +811,7 @@ class produceJoinOrderingFederationWithObjCS {
         return e;
     }
 
-    public static boolean existsCSConnection(HashSet<Triple> sq) {
+    public static boolean existsCSConnectionSubj(HashSet<Triple> sq) {
         boolean e = true;
         Node s = null;
         for (Triple t : sq) {
@@ -608,7 +822,18 @@ class produceJoinOrderingFederationWithObjCS {
         return e;
     }
 
-    public static void estimateSelectivityCP(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashSet<Triple> triples) {
+    public static boolean existsCSConnectionObj(HashSet<Triple> sq) {
+        boolean e = true;
+        Node o = null;
+        for (Triple t : sq) {
+            Node oTmp = t.getObject();
+            e = e && ((o == null) || o.equals(oTmp));
+            o = oTmp;
+        }
+        return e;
+    }
+
+    public static void estimateSelectivityCP(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Triple> triples) {
 //HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex, HashSet<Triple> triples,HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
 
         Vector<HashSet<Triple>> subqueries = new Vector<HashSet<Triple>>(DPTable.keySet());
@@ -618,12 +843,17 @@ class produceJoinOrderingFederationWithObjCS {
                 HashSet<Triple> sq2 = subqueries.get(j);
                 Vector<Tree<Pair<Integer,Triple>>> ts1 = DPTable.get(sq1).getFirst();
                 Vector<Tree<Pair<Integer,Triple>>> ts2 = DPTable.get(sq2).getFirst();
-                if (existsCPConnection(sq1, sq2)) {
-                    addCheapestCP(ts1, ts2, sq1, sq2, predicateIndex, DPTable); //css, cps, predicateIndex, DPTable);
+                if (existsCPConnectionSubj(sq1, sq2)) {
+                    addCheapestCPSubj(ts1, ts2, sq1, sq2, predicateIndexSubj, DPTable); //css, cps, predicateIndex, DPTable);
+                }
+                if (existsCPConnectionObj(sq1, sq2)) {
+                    addCheapestCPObj(ts1, ts2, sq1, sq2, predicateIndexObj, DPTable); //css, cps, predicateIndex, DPTable);
                 }
                 HashSet<Triple> sq = new HashSet<Triple>(sq1);
                 sq.addAll(sq2);
-                if (existsCSConnection(sq)) {
+                boolean csSubj = existsCSConnectionSubj(sq);
+                boolean csObj = existsCSConnectionObj(sq);
+                if (csSubj || csObj) {
                     // just for the case of very expensive stars that were not included in the DPTable
                     HashSet<Triple> ts = new HashSet<Triple>();
                     for (Tree<Pair<Integer,Triple>> tmpTree : ts1) {
@@ -638,35 +868,73 @@ class produceJoinOrderingFederationWithObjCS {
                     }
                     //HashMap<Integer, Integer> css1 = new HashMap<Integer, Integer>(ts1.getCSDS());
                     //HashMap<Integer, Integer> css1 = css.retainAll(ts2.getCS());
-
-                    addCS(ts, sq, predicateIndex, DPTable); //, hc, additionalSets, cost);
+                    if (csSubj) {
+                        addCSSubj(ts, sq, predicateIndexSubj, DPTable); //, hc, additionalSets, cost);
+                    }
+                    if (csObj) {
+                        addCSObj(ts, sq, predicateIndexObj, DPTable); //, hc, additionalSets, cost);
+                    }
                 }
             }
         }
     }
 
     // precondition: triples in sq1 share the same subject
-    public static void addCS(HashSet<Triple> ts1, HashSet<Triple> sq1, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+    public static void addCSSubj(HashSet<Triple> ts1, HashSet<Triple> sq1, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
-//HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<HashSet<Triple>, Pair<Tree<Triple>, Pair<Long,Long>>> DPTable, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
-
-        Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrder(ts1, predicateIndex); //css, hc, additionalSets, predicateIndex, cost);
+        Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts1, predicateIndex); 
         if (p.size() == 0) {
             return;
         }
         HashSet<Triple> newEntry = new HashSet<Triple>(sq1);
-        long c = cssCostTree(p, predicateIndex); //css, predicateIndex, cost);
+        long c = cssCostTreeSubj(p, predicateIndex); 
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(newEntry);
         if (data == null || data.getSecond().getFirst()>c) {
             DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,0L)));
         }
     }
 
-    public static void addCheapestCP(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Triple> sq1, HashSet<Triple> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
-//HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<HashSet<Triple>, Pair<Tree<Triple>, Pair<Long,Long>>> DPTable) {
-        //Set<Triple> setTS1 = ts1.getElements();
-        //Set<Triple> setTS2 = ts2.getElements();
-        Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTree(ts1, ts2, predicateIndex); //css, cps, predicateIndex);
+    // precondition: triples in sq1 share the same object
+    public static void addCSObj(HashSet<Triple> ts1, HashSet<Triple> sq1, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+
+        Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderObj(ts1, predicateIndex); 
+        if (p.size() == 0) {
+            return;
+        }
+        HashSet<Triple> newEntry = new HashSet<Triple>(sq1);
+        long c = cssCostTreeObj(p, predicateIndex); 
+        Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(newEntry);
+        if (data == null || data.getSecond().getFirst()>c) {
+            DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,0L)));
+        }
+    }
+
+    public static void addCheapestCPSubj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Triple> sq1, HashSet<Triple> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+
+        Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeSubj(ts1, ts2, predicateIndex); 
+        long cost = costTree.getFirst();
+        Vector<Tree<Pair<Integer,Triple>>> tree = costTree.getSecond();
+        
+        //System.out.println("cost of "+sq2+" and "+sq1+": "+cost21);
+        HashSet<Triple> set = new HashSet<Triple>(sq1);
+        set.addAll(sq2);
+
+        Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+        long c = Long.MAX_VALUE;
+        if (data != null) {
+            c = data.getSecond().getFirst();
+        }
+        // including the minimum cost if inferior to previous value
+        // order not really considered here... just computing the cardinality
+        if (cost<Long.MAX_VALUE && cost < c) {
+            //order = makeTree(ts1, ts2, costSS12.getSecond());
+            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+        }
+    }
+
+    public static void addCheapestCPObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Triple> sq1, HashSet<Triple> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+
+        Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeObj(ts1, ts2, predicateIndex); 
         long cost = costTree.getFirst();
         Vector<Tree<Pair<Integer,Triple>>> tree = costTree.getSecond();
         
@@ -747,7 +1015,7 @@ class produceJoinOrderingFederationWithObjCS {
         return triples;
     }
 
-    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTree(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTreeSubj(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
         long cost = 0L;
         for (Tree<Pair<Integer,Triple>> leftTree : vLT) {
@@ -758,7 +1026,7 @@ class produceJoinOrderingFederationWithObjCS {
             HashMap<String, Triple> mapL = new HashMap<String, Triple>();
             Set<String> predicatesLT = obtainBoundPredicates(leftTree, mapL);
             HashSet<Integer> relevantCssLT = computeRelevantCS(predicatesLT, sourceLT, predicateIndex);
-            Long costLT = computeCost(getCSS(sourceLT), relevantCssLT, predicatesLT, mapL);
+            Long costLT = computeCost(getCSSSubj(sourceLT), relevantCssLT, predicatesLT, mapL, true);
             for (Tree<Pair<Integer,Triple>> rightTree : vRT) {
                 Integer sourceRT = sameSource(rightTree.getElements());
                 if (sourceRT == null) {
@@ -767,7 +1035,7 @@ class produceJoinOrderingFederationWithObjCS {
                 HashMap<String, Triple> mapR = new HashMap<String, Triple>();
                 Set<String> predicatesRT = obtainBoundPredicates(rightTree, mapR);
                 HashSet<Integer> relevantCssRT = computeRelevantCS(predicatesRT, sourceRT, predicateIndex);
-                Long costRT = computeCost(getCSS(sourceRT), relevantCssRT, predicatesRT, mapR);
+                Long costRT = computeCost(getCSSSubj(sourceRT), relevantCssRT, predicatesRT, mapR, true);
 
                 Tree<Pair<Integer,Triple>> nT = null;
                 if (costLT <= costRT) {
@@ -775,7 +1043,7 @@ class produceJoinOrderingFederationWithObjCS {
                 } else {
                     nT = new Branch<Pair<Integer,Triple>>(rightTree, leftTree);
                 }
-                long tmpCost = getCostCP(obtainTriples(leftTree), sourceLT, obtainTriples(rightTree), sourceRT, predicateIndex);
+                long tmpCost = getCostCPSubj(obtainTriples(leftTree), sourceLT, obtainTriples(rightTree), sourceRT, predicateIndex);
                 if (tmpCost > 0) { 
                     res.add(nT);
                     cost += tmpCost;
@@ -785,7 +1053,45 @@ class produceJoinOrderingFederationWithObjCS {
         return new Pair<Long, Vector<Tree<Pair<Integer,Triple>>>>(cost, res);
     }
 
-    public static Long getMultiplicity(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, HashSet<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, HashSet<String> ps2, HashMap<String, Triple> map2) {
+    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTreeObj(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+        Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
+        long cost = 0L;
+        for (Tree<Pair<Integer,Triple>> leftTree : vLT) {
+            Integer sourceLT = sameSource(leftTree.getElements());
+            if (sourceLT == null) {
+                continue;
+            }
+            HashMap<String, Triple> mapL = new HashMap<String, Triple>();
+            Set<String> predicatesLT = obtainBoundPredicates(leftTree, mapL);
+            HashSet<Integer> relevantCssLT = computeRelevantCS(predicatesLT, sourceLT, predicateIndex);
+            Long costLT = computeCost(getCSSObj(sourceLT), relevantCssLT, predicatesLT, mapL, false);
+            for (Tree<Pair<Integer,Triple>> rightTree : vRT) {
+                Integer sourceRT = sameSource(rightTree.getElements());
+                if (sourceRT == null) {
+                    continue;
+                }         
+                HashMap<String, Triple> mapR = new HashMap<String, Triple>();
+                Set<String> predicatesRT = obtainBoundPredicates(rightTree, mapR);
+                HashSet<Integer> relevantCssRT = computeRelevantCS(predicatesRT, sourceRT, predicateIndex);
+                Long costRT = computeCost(getCSSObj(sourceRT), relevantCssRT, predicatesRT, mapR, false);
+
+                Tree<Pair<Integer,Triple>> nT = null;
+                if (costLT <= costRT) {
+                    nT = new Branch<Pair<Integer,Triple>>(leftTree, rightTree);
+                } else {
+                    nT = new Branch<Pair<Integer,Triple>>(rightTree, leftTree);
+                }
+                long tmpCost = getCostCPObj(obtainTriples(leftTree), sourceLT, obtainTriples(rightTree), sourceRT, predicateIndex);
+                if (tmpCost > 0) { 
+                    res.add(nT);
+                    cost += tmpCost;
+                }
+            }
+        }
+        return new Pair<Long, Vector<Tree<Pair<Integer,Triple>>>>(cost, res);
+    }
+
+    public static Long getMultiplicitySubj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, HashSet<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, HashSet<String> ps2, HashMap<String, Triple> map2) {
 
         double sel = 1.0;
         double selTmp = 1.0;
@@ -845,7 +1151,66 @@ class produceJoinOrderingFederationWithObjCS {
         return Math.round(Math.ceil(m*sel));
     }
 
-    public static long getCostCP(Set<Triple> sq1, Integer ds1, Set<Triple> sq2, Integer ds2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { //HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex) {
+    public static Long getMultiplicityObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, HashSet<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, HashSet<String> ps2, HashMap<String, Triple> map2) {
+
+        double sel = 1.0;
+        double selTmp = 1.0;
+        Integer count = cPs.getFirst();
+        //System.out.println("p: "+p);
+        for (String p1 : ps1) {
+                //System.out.println("p1: "+p1);
+                Triple t = map1.get(p1);
+                Node s = t.getSubject();
+                Node o = t.getObject();
+                boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                if (c) {
+                    Integer p_m = cPs.getSecond().get(p1).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
+                }
+                if (!s.isVariable()) {
+                    Integer p_m = cPs.getSecond().get(p1).getFirst();
+                    Integer p_d = cPs.getSecond().get(p1).getSecond();
+                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    double tmp = 1.0/ p_d;
+                    if (tmp < selTmp) {
+                        selTmp = tmp;
+                    }
+                }
+        }
+        sel = sel * selTmp; // CONSIDER CONSTANTS first star
+        selTmp = 1.0;
+        count = cPs2.getFirst();
+        for (String p2 : ps2) {
+            //System.out.println("p2: "+p2);
+            if (original || !p2.equals(p)) {
+                Triple t = map2.get(p2);
+                Node s = t.getSubject();
+                Node o = t.getObject();
+                boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                if (c) {
+                    Integer p_m = cPs2.getSecond().get(p2).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
+                }
+                if (!s.isVariable()) {
+                    Integer p_m = cPs2.getSecond().get(p2).getFirst();
+                    Integer p_d = cPs2.getSecond().get(p2).getSecond();
+                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    double tmp = 1.0/ p_d;
+                    if (tmp < selTmp) {
+                        selTmp = tmp;
+                    }
+                }
+            }
+        }
+        sel = sel * selTmp;  // CONSIDER CONSTANTS second star
+        //System.out.println("m: "+m+". sel: "+sel);
+        //System.out.println("sel: "+sel);
+        return Math.round(Math.ceil(m*sel));
+    }
+
+    public static long getCostCPSubj(Set<Triple> sq1, Integer ds1, Set<Triple> sq2, Integer ds2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
 
         HashSet<String> ps1 = new HashSet<String>();
         HashMap<String, Triple> map1 = new HashMap<String, Triple>();
@@ -878,14 +1243,12 @@ class produceJoinOrderingFederationWithObjCS {
         HashMap<String, Long> mult21 = new HashMap<String, Long>();
 
         for (Integer cs1 : css1) {
-            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSS(ds1).get(cs1);
-            //HashMap<String, Pair<Integer, Integer>> ps = cPs.getSecond();
+            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
 
             for (Integer cs2 : css2) {
-                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSS(ds2).get(cs2);
-                //HashMap<String, Pair<Integer, Integer>> psB = cPs2.getSecond();
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSSubj(ds2).get(cs2);
 
-                HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPS(ds1, ds2).get(cs1);
+                HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPSSubj(ds1, ds2).get(cs1);
                 if (css2Ps != null) {
                     //System.out.println("Links 1 -> 2");
                     HashMap<String, Integer> links12 = css2Ps.get(cs2);
@@ -897,13 +1260,7 @@ class produceJoinOrderingFederationWithObjCS {
                             Triple t1 = map1.get(p);
                             Triple t2 = sq2.iterator().next();
                             if (t1.getObject().equals(t2.getSubject())) {
-                                // COMMENTED TO OMMIT CONSIDERING THE MULTIPLICITY
-                                //Long m1;
-                                //if (includeMultiplicity) {  // getMultiplicity also consider constants
-                                Long m1 = getMultiplicity(links12.get(p), p,  cPs, ps1, map1, cPs2, ps2, map2);
-                                /*} else {
-                                    m1 = (long) links12.get(p);
-                                }*/
+                                Long m1 = getMultiplicitySubj(links12.get(p), p, cPs, ps1, map1, cPs2, ps2, map2);
                                 Long m2 = mult12.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -913,7 +1270,7 @@ class produceJoinOrderingFederationWithObjCS {
                         }
                     }
                 }
-                css2Ps = getCPS(ds2, ds1).get(cs2);
+                css2Ps = getCPSSubj(ds2, ds1).get(cs2);
                 if (css2Ps != null) {
                     //System.out.println("Links 2 -> 1");
                     HashMap<String, Integer> links21 = css2Ps.get(cs1);
@@ -924,13 +1281,7 @@ class produceJoinOrderingFederationWithObjCS {
                             Triple t2 = map2.get(p);
                             Triple t1 = sq1.iterator().next();
                             if (t2.getObject().equals(t1.getSubject())) {
-                                // COMMENTED TO OMMIT CONSIDERING THE MULTIPLICITY
-                                //Long m1;
-                                //if (includeMultiplicity) {  // getMultiplicity also consider constants
-                                Long m1 = getMultiplicity(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
-                                /*} else {
-                                    m1 = (long) links21.get(p);
-                                }*/
+                                Long m1 = getMultiplicitySubj(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
                                 Long m2 = mult21.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -957,6 +1308,103 @@ class produceJoinOrderingFederationWithObjCS {
         return c;
     }
 
+    public static long getCostCPObj(Set<Triple> sq1, Integer ds1, Set<Triple> sq2, Integer ds2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
+
+        HashSet<String> ps1 = new HashSet<String>();
+        HashMap<String, Triple> map1 = new HashMap<String, Triple>();
+        for (Triple t : sq1) {
+            Node p = t.getPredicate(); 
+            if (p.isURI()) {
+                String pStr = "<"+p.getURI()+">";
+                ps1.add(pStr);
+                map1.put(pStr, t);
+            }
+        }
+        
+        HashSet<String> ps2 = new HashSet<String>();
+        HashMap<String, Triple> map2 = new HashMap<String, Triple>();
+        for (Triple t : sq2) {
+            Node p = t.getPredicate(); 
+            if (p.isURI()) {
+                String pStr = "<"+p.getURI()+">";
+                ps2.add(pStr);
+                map2.put(pStr, t);
+            }
+        }
+
+        HashSet<Integer> css1 = computeRelevantCS(ps1, ds1, predicateIndex);
+        HashSet<Integer> css2 = computeRelevantCS(ps2, ds2, predicateIndex);
+
+        // Predicate --> Count
+        HashMap<String, Long> mult12 = new HashMap<String, Long>();
+        long c = 0L;
+        HashMap<String, Long> mult21 = new HashMap<String, Long>();
+
+        for (Integer cs1 : css1) {
+            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSObj(ds1).get(cs1);
+
+            for (Integer cs2 : css2) {
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSObj(ds2).get(cs2);
+
+                HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPSObj(ds1, ds2).get(cs1);
+                if (css2Ps != null) {
+                    //System.out.println("Links 1 -> 2");
+                    HashMap<String, Integer> links12 = css2Ps.get(cs2);
+
+                    if (links12 != null) {
+                        HashSet<String> relevantLinks = new HashSet<String>(links12.keySet());
+                        relevantLinks.retainAll(ps2);
+                        for (String p : relevantLinks) {
+                            Triple t1 = sq1.iterator().next(); //map1.get(p);
+                            Triple t2 = map2.get(p); //sq2.iterator().next();
+                            if (t1.getObject().equals(t2.getSubject())) {
+                                Long m1 = getMultiplicityObj(links12.get(p), p,  cPs, ps1, map1, cPs2, ps2, map2);
+                                Long m2 = mult12.get(p);
+                                if (m2 == null) {
+                                    m2 = 0L;
+                                }
+                                mult12.put(p, m1+m2);
+                            }
+                        }
+                    }
+                }
+                css2Ps = getCPSObj(ds2, ds1).get(cs2);
+                if (css2Ps != null) {
+                    //System.out.println("Links 2 -> 1");
+                    HashMap<String, Integer> links21 = css2Ps.get(cs1);
+                    if (links21 != null) {
+                        HashSet<String> relevantLinks = new HashSet<String>(links21.keySet());
+                        relevantLinks.retainAll(ps1);
+                        for (String p : relevantLinks) {
+                            Triple t2 = sq2.iterator().next(); //map2.get(p);
+                            Triple t1 = map1.get(p); //sq1.iterator().next();
+                            if (t2.getObject().equals(t1.getSubject())) {
+                                Long m1 = getMultiplicityObj(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
+                                Long m2 = mult21.get(p);
+                                if (m2 == null) {
+                                    m2 = 0L;
+                                }
+                                mult21.put(p, m1+m2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //System.out.println("Links 1 -> 2, count: "+c12);
+        for (String p : mult12.keySet()) {
+            Long m = mult12.get(p);
+            c += m;
+        }
+        //System.out.println("Links 2 -> 1, count: "+c21);
+        for (String p : mult21.keySet()) {
+            Long m = mult21.get(p);
+            c += m;
+        }
+
+        return c;
+    }
     public static HashSet<Integer> computeRelevantCS(Set<String> ps, Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
 
         HashSet<Integer> intersection = null;
@@ -1023,7 +1471,7 @@ class produceJoinOrderingFederationWithObjCS {
         return intersection;
     }
     // precondition: triples in vTree share the same subject and all triples in each tree are evaluated at the same source
-    public static long cssCostTree(Vector<Tree<Pair<Integer,Triple>>> vTree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+    public static long cssCostTreeSubj(Vector<Tree<Pair<Integer,Triple>>> vTree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         long cost = 0L;
         for (Tree<Pair<Integer,Triple>> tmpTree : vTree) {
             HashMap<String, Triple> map = new HashMap<String, Triple>();
@@ -1031,12 +1479,33 @@ class produceJoinOrderingFederationWithObjCS {
             Integer ds = tmpTree.getOneElement().getFirst();
             Integer key = produceStarJoinOrdering.getIKey(ps);        
             long c = 0L;
-            HashMap<Integer, Integer> costHM = getCost(ds);
+            HashMap<Integer, Integer> costHM = getCostSubj(ds);
             /*if (costHM.containsKey(key)) {
                 c += costHM.get(key);
             } else {*/
                 HashSet<Integer> relevantCss = computeRelevantCS(ps, ds, predicateIndex);
-                c += computeCost(getCSS(ds), relevantCss, ps, map);
+                c += computeCost(getCSSSubj(ds), relevantCss, ps, map, true);
+            //}
+            cost += c;
+        }
+        return cost;
+    }
+
+    // precondition: triples in vTree share the same object and all triples in each tree are evaluated at the same source
+    public static long cssCostTreeObj(Vector<Tree<Pair<Integer,Triple>>> vTree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+        long cost = 0L;
+        for (Tree<Pair<Integer,Triple>> tmpTree : vTree) {
+            HashMap<String, Triple> map = new HashMap<String, Triple>();
+            Set<String> ps = obtainBoundPredicates(tmpTree, map);
+            Integer ds = tmpTree.getOneElement().getFirst();
+            Integer key = produceStarJoinOrdering.getIKey(ps);        
+            long c = 0L;
+            HashMap<Integer, Integer> costHM = getCostObj(ds);
+            /*if (costHM.containsKey(key)) {
+                c += costHM.get(key);
+            } else {*/
+                HashSet<Integer> relevantCss = computeRelevantCS(ps, ds, predicateIndex);
+                c += computeCost(getCSSObj(ds), relevantCss, ps, map, false);
             //}
             cost += c;
         }
@@ -1044,26 +1513,44 @@ class produceJoinOrderingFederationWithObjCS {
     }
 
     // precondition: triples in tree share the same subject and all triples in each tree are evaluated at the same source
-    public static long cssCostTree(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+    public static long cssCostTreeSubj(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         long cost = 0L;
             HashMap<String, Triple> map = new HashMap<String, Triple>();
             Set<String> ps = obtainBoundPredicates(tree, map);
             Integer ds = tree.getOneElement().getFirst();
             Integer key = produceStarJoinOrdering.getIKey(ps);        
             long c = 0L;
-            HashMap<Integer, Integer> costHM = getCost(ds);
+            HashMap<Integer, Integer> costHM = getCostSubj(ds);
             /*if (costHM.containsKey(key)) {
                 c += costHM.get(key);
             } else {*/
                 HashSet<Integer> relevantCss = computeRelevantCS(ps, ds, predicateIndex);
-                c += computeCost(getCSS(ds), relevantCss, ps, map);
+                c += computeCost(getCSSSubj(ds), relevantCss, ps, map, true);
             //}
             cost += c;
         return cost;
     }
 
-    public static long cost(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
-//HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> cost) {
+    // precondition: triples in tree share the same object and all triples in each tree are evaluated at the same source
+    public static long cssCostTreeObj(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+        long cost = 0L;
+            HashMap<String, Triple> map = new HashMap<String, Triple>();
+            Set<String> ps = obtainBoundPredicates(tree, map);
+            Integer ds = tree.getOneElement().getFirst();
+            Integer key = produceStarJoinOrdering.getIKey(ps);        
+            long c = 0L;
+            HashMap<Integer, Integer> costHM = getCostObj(ds);
+            /*if (costHM.containsKey(key)) {
+                c += costHM.get(key);
+            } else {*/
+                HashSet<Integer> relevantCss = computeRelevantCS(ps, ds, predicateIndex);
+                c += computeCost(getCSSObj(ds), relevantCss, ps, map, false);
+            //}
+            cost += c;
+        return cost;
+    }
+
+    public static long costSubj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
 
         HashSet<String> ps = new HashSet<String>();
         HashMap<String, Triple> map = new HashMap<String, Triple>();
@@ -1080,17 +1567,34 @@ class produceJoinOrderingFederationWithObjCS {
         Integer key = produceStarJoinOrdering.getIKey(ps);        
         long c = 0L;
         for (Integer ds : dsCss.keySet()) {
-            HashMap<Integer, Integer> cost = getCost(ds);
-            /*if (cost.containsKey(key)) {
-                c += cost.get(key);
-            } else {*/
-                c += computeCost(getCSS(ds), dsCss.get(ds), ps, map);
-            //}
+            c += computeCost(getCSSSubj(ds), dsCss.get(ds), ps, map, true);
         }
         return c;
     }
 
-    public static long computeCost(HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashSet<Integer> relevantCss, Set<String> ps, HashMap<String, Triple> map) {
+    public static long costObj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+
+        HashSet<String> ps = new HashSet<String>();
+        HashMap<String, Triple> map = new HashMap<String, Triple>();
+        for (Triple t : ts) {
+            Node p = t.getPredicate(); 
+            if (p.isURI()) {
+                String pStr = "<"+p.getURI()+">";
+                ps.add(pStr);
+                map.put(pStr, t);
+            }
+        }
+
+        HashMap<Integer, HashSet<Integer>> dsCss = computeRelevantCS(ps, predicateIndex);
+        Integer key = produceStarJoinOrdering.getIKey(ps);        
+        long c = 0L;
+        for (Integer ds : dsCss.keySet()) {
+            c += computeCost(getCSSObj(ds), dsCss.get(ds), ps, map, false);
+        }
+        return c;
+    }
+
+    public static long computeCost(HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashSet<Integer> relevantCss, Set<String> ps, HashMap<String, Triple> map, boolean subjStar) {
         long cost = 0L;
         //System.out.println("map: "+map+". ps: "+ps);
         for (Integer cs : relevantCss) {
@@ -1106,14 +1610,24 @@ class produceJoinOrderingFederationWithObjCS {
                 Triple t = map.get(p);
                 Node s = t.getSubject();
                 Node o = t.getObject();
-                boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
+                boolean c = true;
+                if (subjStar) {
+                    c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
+                } else {
+                    c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                }
                 if (c) {
                     // p_m css.get(cs).getSecond().get(p).getFirst()
                     // p_d css.get(cs).getSecond().get(p).getSecond()
                     sel = sel*(((double)css.get(cs).getSecond().get(p).getFirst())/costTmp);
                     //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
-                if (!o.isVariable()) {
+                if (subjStar) {
+                    c = !o.isVariable();
+                } else {
+                    c = !s.isVariable();
+                }
+                if (c) {
                     Integer p_m = css.get(cs).getSecond().get(p).getFirst();
                     Integer p_d = css.get(cs).getSecond().get(p).getSecond();
                     //System.out.println("p_m: "+p_m+". p_d: "+p_d);
@@ -1132,7 +1646,7 @@ class produceJoinOrderingFederationWithObjCS {
         return cost;
     }
 
-    public static Tree<Pair<Integer,Triple>> convertToTree(LinkedList<String> orderedPs, HashMap<String, Triple> map, Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+    public static Tree<Pair<Integer,Triple>> convertToTree(LinkedList<String> orderedPs, HashMap<String, Triple> map, Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, boolean subjCenter) {
         Tree<Pair<Integer,Triple>> sortedStar = null;
         for (String p : orderedPs) {
             if (map.containsKey(p)) {
@@ -1147,11 +1661,11 @@ class produceJoinOrderingFederationWithObjCS {
                 //sortedStar.add(t);
             }
         }
-        considerConstants(sortedStar, predicateIndex);
+        considerConstants(sortedStar, predicateIndex, subjCenter);
         return sortedStar;
     }
 
-    public static void considerConstants(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+    public static void considerConstants(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, boolean subjCenter) {
 
         if (tree instanceof Leaf<?>) {
             return;
@@ -1159,9 +1673,18 @@ class produceJoinOrderingFederationWithObjCS {
         Branch<Pair<Integer, Triple>> b = (Branch<Pair<Integer, Triple>>) tree;
         Tree<Pair<Integer, Triple>> lTree = b.getLeft();
         Tree<Pair<Integer, Triple>> rTree = b.getRight();
-        long cLeft = cssCostTree(lTree, predicateIndex);
-        long cResult = cssCostTree(b, predicateIndex);
-        long cRight = cssCostTree(rTree, predicateIndex);
+        long cLeft = 0L; //cssCostTree(lTree, predicateIndex);
+        long cResult = 0L; //cssCostTree(b, predicateIndex);
+        long cRight = 0L; //cssCostTree(rTree, predicateIndex);
+        if (subjCenter) {
+            cLeft = cssCostTreeSubj(lTree, predicateIndex);
+            cResult = cssCostTreeSubj(b, predicateIndex);
+            cRight = cssCostTreeSubj(rTree, predicateIndex);
+        } else {
+            cLeft = cssCostTreeObj(lTree, predicateIndex);
+            cResult = cssCostTreeObj(b, predicateIndex);
+            cRight = cssCostTreeObj(rTree, predicateIndex);
+        }
         if (cRight <= cLeft + cResult) {
             if (lTree instanceof Leaf<?>) {
                  Tree<Pair<Integer, Triple>> aux = lTree;
@@ -1171,13 +1694,13 @@ class produceJoinOrderingFederationWithObjCS {
                  Branch<Pair<Integer, Triple>> lBranch = (Branch<Pair<Integer, Triple>>) lTree;
                  Tree<Pair<Integer, Triple>> aux = lBranch.getRight();
                  lBranch.setRight(rTree);
-                 considerConstants(lBranch, predicateIndex);
+                 considerConstants(lBranch, predicateIndex, subjCenter);
                  b.setRight(aux);
             }
         }
     }
 
-    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrder(HashSet<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
+    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderSubj(HashSet<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
         HashSet<String> ps = new HashSet<String>();
         HashMap<String, Triple> map = new HashMap<String, Triple>();
         HashSet<Triple> remainingTriples = new HashSet<Triple>();
@@ -1197,14 +1720,56 @@ class produceJoinOrderingFederationWithObjCS {
         //HashMap<Integer, Tree<Triple>> dsTree = new HashMap<Integer, Tree<Triple>>();
 
         for (Integer ds : dsCss.keySet()) {
-            HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSS(ds);
-            HashMap<Integer, Integer> hc = getHC(ds);
-            HashMap<Integer, Set<String>> additionalSets = getAdditionalSets(ds);
-            HashMap<Integer, Integer> cost = getCost(ds);
-            HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndex(ds, predicateIndex);
+            HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSSubj(ds);
+            HashMap<Integer, Integer> hc = getHCSubj(ds);
+            HashMap<Integer, Set<String>> additionalSets = getAdditionalSetsSubj(ds);
+            HashMap<Integer, Integer> cost = getCostSubj(ds);
+            HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndexSubj(ds, predicateIndex);
             LinkedList<String> orderedPs = produceStarJoinOrdering.getStarJoinOrdering(ps, css, hc, additionalSets, predicateIndexDS, cost);
             //System.out.println("list of sorted predicates: "+orderedPs);
-            Tree<Pair<Integer,Triple>> sortedStar = convertToTree(orderedPs, map, ds, predicateIndex);
+            Tree<Pair<Integer,Triple>> sortedStar = convertToTree(orderedPs, map, ds, predicateIndex, true);
+            //System.out.println("tree of sorted triples: "+sortedStar);
+            for (Triple t : remainingTriples) {
+                Leaf<Pair<Integer,Triple>> leaf = new Leaf<Pair<Integer,Triple>>(new Pair<Integer,Triple>(ds, t));
+                if (sortedStar == null) {
+                    sortedStar = leaf;
+                } else {
+                    sortedStar = new Branch<Pair<Integer,Triple>>(sortedStar, leaf);
+                }
+            }
+            vTree.add(sortedStar);
+        }
+        return vTree;
+    }
+
+    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderObj(HashSet<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
+        HashSet<String> ps = new HashSet<String>();
+        HashMap<String, Triple> map = new HashMap<String, Triple>();
+        HashSet<Triple> remainingTriples = new HashSet<Triple>();
+        for (Triple t : ts) {
+            Node p = t.getPredicate(); 
+            if (p.isURI()) {
+                String pStr = "<"+p.getURI()+">";
+                ps.add(pStr);
+                map.put(pStr, t);
+            } else {
+                remainingTriples.add(t);
+            }
+        }
+        HashMap<Integer, HashSet<Integer>> dsCss = computeRelevantCS(ps, predicateIndex);
+        //System.out.println("dsCss for the star: "+dsCss);
+        Vector<Tree<Pair<Integer,Triple>>> vTree = new Vector<Tree<Pair<Integer,Triple>>>();
+        //HashMap<Integer, Tree<Triple>> dsTree = new HashMap<Integer, Tree<Triple>>();
+
+        for (Integer ds : dsCss.keySet()) {
+            HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSObj(ds);
+            HashMap<Integer, Integer> hc = getHCObj(ds);
+            HashMap<Integer, Set<String>> additionalSets = getAdditionalSetsObj(ds);
+            HashMap<Integer, Integer> cost = getCostObj(ds);
+            HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndexObj(ds, predicateIndex);
+            LinkedList<String> orderedPs = produceStarJoinOrdering.getStarJoinOrdering(ps, css, hc, additionalSets, predicateIndexDS, cost);
+            //System.out.println("list of sorted predicates: "+orderedPs);
+            Tree<Pair<Integer,Triple>> sortedStar = convertToTree(orderedPs, map, ds, predicateIndex, false);
             //System.out.println("tree of sorted triples: "+sortedStar);
             for (Triple t : remainingTriples) {
                 Leaf<Pair<Integer,Triple>> leaf = new Leaf<Pair<Integer,Triple>>(new Pair<Integer,Triple>(ds, t));
@@ -1221,6 +1786,7 @@ class produceJoinOrderingFederationWithObjCS {
 
     public static Node update(BGP bgp, HashSet<Triple> star, int i) {
 
+        boolean subjCenter = centerIsSubject(star);
         List<Triple> ts = bgp.getBody();
         //System.out.println("updating ts: "+ts+" for star: "+star);
         //HashSet<Triple> tsAux = new HashSet<Triple>();
@@ -1228,7 +1794,12 @@ class produceJoinOrderingFederationWithObjCS {
         //System.out.println("ts after removing star triples: "+ts);
         HashSet<Node> vsStar = new HashSet<Node>();
         HashSet<Node> vsRest = new HashSet<Node>();
-        Node nv = NodeFactory.createVariable("Subj"+i);
+        Node nv = null;
+        if (subjCenter) {
+            nv = NodeFactory.createVariable("Subj"+i);
+        } else {
+            nv = NodeFactory.createVariable("Obj"+i);
+        }
         //Node np = NodeFactory.createVariable("Pred"+i);
         //Node no = NodeFactory.createVariable("Obj"+i);
         //Triple nt = new Triple(nv, np, no);
@@ -1245,7 +1816,11 @@ class produceJoinOrderingFederationWithObjCS {
             Node s = t.getSubject();
             Node o = t.getObject();
             // keep connections of the star with the remaining triples
-            if (vsRest.contains(o)) {
+            if (subjCenter && vsRest.contains(o)) {
+                ts.add(t);
+                toRemove.add(t);
+            }
+            if (!subjCenter && vsRest.contains(s)) {
                 ts.add(t);
                 toRemove.add(t);
             }
@@ -1294,13 +1869,12 @@ class produceJoinOrderingFederationWithObjCS {
         return nv;
     }
 
-    public static Vector<HashSet<Triple>> getStars(BGP bgp, long budget, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndex) {
-//HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> cost) {
+    public static Vector<HashSet<Triple>> getStars(BGP bgp, long budget, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndexObj) {
+
         Vector<HashSet<Triple>> stars = new Vector<HashSet<Triple>>();
         List<Triple> ts = new LinkedList<Triple>(bgp.getBody());
         HashMap<Node, HashSet<Triple>> bySubject = new HashMap<Node, HashSet<Triple>>();
-        for (Triple t : ts) {
-            
+        for (Triple t : ts) {            
             Node s = t.getSubject();
             HashSet<Triple> sts = bySubject.get(s);
             if (sts==null) {
@@ -1309,15 +1883,35 @@ class produceJoinOrderingFederationWithObjCS {
             sts.add(t);
             bySubject.put(s, sts);
         }
-
+        HashMap<Node, HashSet<Triple>> byObject = new HashMap<Node, HashSet<Triple>>();
+        for (Triple t : ts) {            
+            Node o = t.getObject();
+            HashSet<Triple> ots = byObject.get(o);
+            if (ots==null) {
+                ots = new HashSet<Triple>();
+            }
+            ots.add(t);
+            byObject.put(o, ots);
+        }
         for (Node s : bySubject.keySet()) {
             HashSet<Triple> starSubj = bySubject.get(s);
-            long card = cost(starSubj, predicateIndex);
+            long card = costSubj(starSubj, predicateIndexSubj);
+            Triple t = starSubj.iterator().next();
             if (card <= budget) {
                 stars.add(starSubj);
                 ts.removeAll(starSubj);
             }
         }
+        for (Node o : byObject.keySet()) {
+            HashSet<Triple> starObj = byObject.get(o);
+            long card = costObj(starObj, predicateIndexObj);
+            Triple t = starObj.iterator().next();
+            if (card <= budget && !stars.contains(starObj)) {
+                stars.add(starObj);
+                ts.removeAll(starObj);
+            }
+        }
+
         /* // stars by object, have to adjust the rest of the code before including these stars
         HashMap<Node, HashSet<Triple>> byObject = new HashMap<Node, HashSet<Triple>>();
         for (Triple t : ts) {
