@@ -366,15 +366,15 @@ class produceJoinOrderingFederationComplete {
         // Predicate --> DatasetId --> set of CSId
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj = readPredicateIndexesSubj(folder, datasets); 
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj = readPredicateIndexesObj(folder, datasets); 
-        System.out.println("predicateIndexSubj size: "+predicateIndexSubj.size());
-        System.out.println("predicateIndexObj size: "+predicateIndexObj.size());
+        //System.out.println("predicateIndexSubj size: "+predicateIndexSubj.size());
+        //System.out.println("predicateIndexObj size: "+predicateIndexObj.size());
         BGP bgp = new BGP(queryFile);
         distinct = bgp.getDistinct();
         projectedVariables = bgp.getProjectedVariables();
         // sub-query --> <order, <cardinality,cost>>
         HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
         Vector<HashSet<Triple>> stars = getStars(bgp, budget, predicateIndexSubj, predicateIndexObj); //css, predicateIndex, cost);
-        System.out.println("stars: "+stars);
+        //System.out.println("stars: "+stars);
         int i = 1;
         //HashSet<Triple> triples = new HashSet<Triple>();
         HashSet<Node> nodes = new HashSet<Node>();
@@ -392,20 +392,20 @@ class produceJoinOrderingFederationComplete {
                 Triple r = renamed.get(t);
                 s.add(r);
             }
-            System.out.println("updated bgp "+bgp+" for star : "+s+" and for nn: "+nn);
+            //System.out.println("updated bgp "+bgp+" for star : "+s+" and for nn: "+nn);
             // current star is used for the join ordering, it does not contain any metanode
             if (s.size()>0) {
                 
                 Vector<Tree<Pair<Integer,Triple>>> p = null;
-                System.out.println("centerIsSubject(s)? "+centerIsSubject(s));
+                //System.out.println("centerIsSubject(s)? "+centerIsSubject(s));
                 if (centerIsSubject(s)) {
                     p = getStarJoinOrderSubj(s, predicateIndexSubj); 
                 } else {
                     p = getStarJoinOrderObj(s, predicateIndexObj); 
                 }
-                System.out.println("join ordering for the star: "+p);
+                //System.out.println("join ordering for the star: "+p);
                 if (p.size() ==0) {  // test case missing sources for a star
-                    triples.clear();
+                    nodes.clear();
                     map.clear();
                     bgp.getBody().clear();
                     break;
@@ -425,15 +425,19 @@ class produceJoinOrderingFederationComplete {
             }
         }
         
-        System.out.println("map: "+map);
-        System.out.println("DPTable before add.. :"+DPTable);
+        //System.out.println("map: "+map);
+        //System.out.println("DPTable before add.. :"+DPTable);
         addRemainingTriples(DPTable, bgp, predicateIndexSubj, predicateIndexObj, nodes, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
-        System.out.println("DPTable after add.. :"+DPTable);
+        //System.out.println("DPTable after add.. :"+DPTable);
         // may have to consider already intermediate results in the CP estimation for the cost
-        estimateSelectivityCP(DPTable, predicateIndexSubj, predicateIndexObj, nodes, bgp); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
-        System.out.println("DPTable after CP estimation.. :"+DPTable);
-        computeJoinOrderingDP(DPTable, triples);
-        Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(triples);
+        HashMap<HashSet<Node>, Double> selectivity = new HashMap<HashSet<Node>, Double>();
+        //HashMap<HashSet<Node>, Vector<Tree<Pair<Integer,Triple>>>> selectivity = new HashMap<HashSet<Node>, Double>();
+        estimateSelectivityCP(DPTable, predicateIndexSubj, predicateIndexObj, nodes, bgp, map, selectivity); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
+        //System.out.println("DPTable after CP estimation.. :"+DPTable);
+        //System.out.println("selectivity :"+selectivity);
+        //System.out.println("nodes :"+nodes);
+        computeJoinOrderingDP(DPTable, nodes, selectivity);
+        Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(nodes);
         if (res != null && res.getFirst().size() > 0) {
             String plan = toString(res.getFirst());
             System.out.println("Plan: "+plan);
@@ -443,7 +447,7 @@ class produceJoinOrderingFederationComplete {
         } else {
             System.out.println("No plan was found");
         }
-        System.out.println("DPTable at the end: "+DPTable);
+        //System.out.println("DPTable at the end: "+DPTable);
     }
 
     public static void write(String content, String fileName) {
@@ -611,6 +615,14 @@ class produceJoinOrderingFederationComplete {
         return c.equals(tree.getOneElement().getSecond().getSubject());
     }
 
+    public static boolean centerIsObject(Set<Triple> ts) {
+        if (ts.size() == 1) {
+            return true;
+        }
+        Node c = getCenter(ts);
+        return c.equals(ts.iterator().next().getObject());
+    }
+
     public static boolean centerIsObject(Tree<Pair<Integer, Triple>> tree) {
         if (tree instanceof Leaf<?>) {
             return true;
@@ -619,7 +631,33 @@ class produceJoinOrderingFederationComplete {
         return c.equals(tree.getOneElement().getSecond().getObject());
     }
 
-    public static HashSet<Triple> rename(HashSet<Triple> star, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Triple,Triple> renamed) {
+    public static HashSet<Triple> renameBack(Set<Triple> star, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Triple,Triple> renamed) {
+
+        HashMap<Node, Node> hm = new HashMap<Node,Node>();
+        for (Node n : map.keySet()) {
+            Tree<Pair<Integer,Triple>> tree = map.get(n).get(0);
+            Node c = getCenter(tree);
+            hm.put(n, c);  // meta-node -> node
+        }
+        HashSet<Triple> newStar = new HashSet<Triple>();
+        for (Triple t : star) {
+            Node s = t.getSubject();
+            if (hm.containsKey(s)) {
+                s = hm.get(s);
+            }
+            Node p = t.getPredicate();
+            Node o = t.getObject();
+            if (hm.containsKey(o)) {
+                o = hm.get(o);
+            }
+            Triple newTriple = new Triple(s, p, o);
+            newStar.add(newTriple);
+            renamed.put(t, newTriple); // with meta-nodes -> without meta-nodes
+        }
+        return newStar;
+    }
+
+    public static HashSet<Triple> rename(Set<Triple> star, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Triple,Triple> renamed) {
 
         HashMap<Node, Node> invertMap = new HashMap<Node,Node>();
         for (Node n : map.keySet()) {
@@ -646,94 +684,152 @@ class produceJoinOrderingFederationComplete {
     }
 
     // CS and CP already provide cardinalities for sets of triples with one or two elements
-    public static void computeJoinOrderingDP(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Triple> triples) {
+    public static void computeJoinOrderingDP(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Node> nodes, HashMap<HashSet<Node>, Double> selectivity) {
 
-        for (int i = 3; i <= triples.size(); i++) {
-            computeJoinOrderingDPAux(DPTable, triples, i);
+        for (int i = 3; i <= nodes.size(); i++) {
+            computeJoinOrderingDPAux(DPTable, nodes, i, selectivity);
         }
     }
 
-    public static void getAllSubsets(HashSet<Triple> rn, int j, Vector<HashSet<Triple>> subsets) {
+    public static void getAllSubsets(HashSet<Node> rn, int j, Vector<HashSet<Node>> subsets) {
         if (j == 0) {
-            subsets.add(new HashSet<Triple>());
+            subsets.add(new HashSet<Node>());
             return;
         } else if (rn.size() == 0) {
             return;
         }
-        HashSet<Triple> aux = new HashSet<Triple>(rn);
-        Triple elem = rn.iterator().next();
+        HashSet<Node> aux = new HashSet<Node>(rn);
+        Node elem = rn.iterator().next();
         aux.remove(elem);
-        Vector<HashSet<Triple>> subsetsAux = new Vector<HashSet<Triple>>();
+        Vector<HashSet<Node>> subsetsAux = new Vector<HashSet<Node>>();
         getAllSubsets(aux, j-1, subsetsAux);
         getAllSubsets(aux, j, subsets);
-        for (HashSet<Triple> ss : subsetsAux) {
+        for (HashSet<Node> ss : subsetsAux) {
             ss.add(elem);
             subsets.add(ss);
         }
     }
 
-    public static void computeJoinOrderingDPAux(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Triple> triples, int i) {
+    public static void computeJoinOrderingDPAux(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Node> nodes, int i, HashMap<HashSet<Node>, Double> selectivity) {
         // currently cost depends only on intermediate results, then for the same two sub-queries their order do not matter
         // start considering sub-queries from half the size of the current sub-queries (i)
+        //System.out.println("computeJoinOrderingDPAux, i: "+i);
         int k = (int) Math.round(Math.ceil(i/2.0));
-        HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTableAux = new HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>>();
-        for (HashSet<Triple> ns : DPTable.keySet()) {
-            if (ns.size() < k) {
+        HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTableAux = new HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>>();
+        for (HashSet<Node> ns : DPTable.keySet()) {
+            Vector<Tree<Pair<Integer,Triple>>> aux = DPTable.get(ns).getFirst();
+            if (ns.size() < k || aux.size()==0) {
                 continue;
             }
-            HashSet<Triple> rn = new HashSet<Triple>(triples);
+            HashSet<Node> rn = new HashSet<Node>(nodes);
             rn.removeAll(ns);
-            Vector<HashSet<Triple>> subsets = new Vector<HashSet<Triple>>();
+            Vector<HashSet<Node>> subsets = new Vector<HashSet<Node>>();
             getAllSubsets(rn, i-ns.size(), subsets);
-            for (HashSet<Triple> ss : subsets) {
+            for (HashSet<Node> ss : subsets) {
                 //HashSet<Triple> intersection = new HashSet<Triple>(ns);
                 //intersection.retainAll(ss);
-                if (!DPTable.containsKey(ss)) { // || (intersection.size()>0)) {
+                if (ss.size() == 0) {
                     continue;
                 }
-                Long card = getCard(DPTable, ns, ss);
-                Long cost = card + DPTable.get(ns).getSecond().getFirst()+DPTable.get(ss).getSecond().getFirst();
-                HashSet<Triple> newEntry = new HashSet<Triple>(ns);
-                newEntry.addAll(ss);
-                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> pair = DPTableAux.get(newEntry);
-                if ((pair == null) || pair.getSecond().getSecond()>cost) {
-                    //System.out.println("merging : "+ns+" and "+ss+". card: "+card+". cost: "+cost+". pair: "+pair+". newEntry: "+newEntry);
-                    Vector<Tree<Pair<Integer,Triple>>> order = makeTree(DPTable.get(ns).getFirst(), DPTable.get(ss).getFirst(), null);
-                    DPTableAux.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(order, new Pair<Long,Long>(card, cost)));
+                for (HashSet<Node> sss : DPTable.keySet()) {
+                    if (!sss.containsAll(ss)) {
+                    //if (!DPTable.containsKey(ss)|| DPTable.get(ss).getFirst().size()==0) { // || (intersection.size()>0)) {
+                        continue;
+                    }
+                    Long card = getCard(DPTable, ns, sss, selectivity);
+                    Vector<Tree<Pair<Integer,Triple>>> vTreeNS = DPTable.get(ns).getFirst();
+                    Vector<Tree<Pair<Integer,Triple>>> vTreeSS = DPTable.get(sss).getFirst();
+                    //System.out.println("(B) vTreeNS: "+vTreeNS);
+                    //System.out.println("(B) vTreeSS: "+vTreeSS);
+                    vTreeSS = removeRedundancy(vTreeNS, vTreeSS);
+                    //System.out.println("ns: "+ns);
+                    //System.out.println("ss: "+ss);
+                    //System.out.println("sss: "+sss);
+                    //System.out.println("(A) vTreeNS: "+vTreeNS);
+                    //System.out.println("(A) vTreeSS: "+vTreeSS+"DPTable.get(sss).getFirst(): "+DPTable.get(sss).getFirst());
+                    Long cost = card + DPTable.get(ns).getSecond().getFirst()+DPTable.get(sss).getSecond().getFirst();
+                    HashSet<Node> newEntry = new HashSet<Node>(ns);
+                    newEntry.addAll(sss);
+                    //System.out.println("newEntry: "+newEntry+". cost: "+cost);
+                    Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> pair = DPTableAux.get(newEntry);
+                    if ((pair == null) || pair.getSecond().getSecond()>cost) {
+                        Vector<Tree<Pair<Integer,Triple>>> order = makeTree(vTreeNS,vTreeSS, null);
+                        //System.out.println("merging : "+ns+" and "+sss+". card: "+card+". cost: "+cost+". pair: "+pair+". newEntry: "+newEntry+". order: "+order);
+                        DPTableAux.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(order, new Pair<Long,Long>(card, cost)));
+                    }
                 }
             }
         }
         DPTable.putAll(DPTableAux);
     }
 
+    public static Vector<Tree<Pair<Integer,Triple>>> removeRedundancy(Vector<Tree<Pair<Integer,Triple>>> vTreeNS, Vector<Tree<Pair<Integer,Triple>>> vTreeSS) {
+        Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
+
+        for (int i = 0; i < vTreeSS.size();i++) {
+            //System.out.println("before: "+vTreeSS);
+            Tree<Pair<Integer,Triple>> aux = vTreeSS.get(i);
+
+            for (int k = 0; k < vTreeNS.size(); k++) {
+                Tree<Pair<Integer,Triple>> tmp = vTreeNS.get(k);
+                Set<Pair<Integer, Triple>> elems = tmp.getElements();
+
+                for (Pair<Integer, Triple> e : elems) {
+                    //System.out.println("removing e: "+e);
+                    aux = remove(aux, e);
+                    if (aux== null) {
+                        break;
+                    }
+                }
+            }
+            if (aux != null) {
+                res.add(aux);
+            }
+            //System.out.println("after: "+vTreeSS);
+        }
+        return res;
+    }
+
+    public static Tree<Pair<Integer,Triple>> remove(Tree<Pair<Integer,Triple>> tree, Pair<Integer,Triple> e) {
+
+        //System.out.println("tree: "+tree+". e: "+e);
+        if (tree instanceof Branch<?>) {
+            Branch<Pair<Integer,Triple>> b = (Branch<Pair<Integer,Triple>>) tree;
+            Tree<Pair<Integer,Triple>> lTree = b.getLeft();
+            Tree<Pair<Integer,Triple>> rTree = b.getRight();
+            if (lTree instanceof Leaf<?> && lTree.getOneElement().equals(e)) {
+                return rTree;
+            } else if (rTree instanceof Leaf<?> && rTree.getOneElement().equals(e)) {
+                return lTree;
+            }
+            if (lTree instanceof Branch<?>) {
+                lTree = remove(lTree, e);
+            }
+            if (rTree instanceof Branch<?>) {
+                rTree = remove(rTree, e);
+            }
+            tree = new Branch(lTree, rTree);
+        } else if (tree instanceof Leaf<?> && tree.getOneElement().equals(e)) {
+            return null;
+        }
+        return tree;
+    }
+
     // to estimate the cardinality between two sub-queries, consider the information already in DPTable about the joins
     // between two triple patterns, one from each sub-query to compute the selectivity of the joins and the cardinality of the new join
-    public static long getCard(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static long getCard(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<HashSet<Node>, Double> selectivity) {
         long cardSQ1 = DPTable.get(sq1).getSecond().getFirst();
         long cardSQ2 = DPTable.get(sq2).getSecond().getFirst();
         double accSel = 1;
-        for (Triple n : sq1) {
-            for (Triple m : sq2) {
-                HashSet<Triple> join = new HashSet<Triple>();
+        for (Node n : sq1) {
+            for (Node m : sq2) {
+                HashSet<Node> join = new HashSet<Node>();
                 join.add(n);
                 join.add(m);
-                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> val = DPTable.get(join);
-                if (val == null) {
+                Double sel = selectivity.get(join);
+                if (sel == null) {
                     continue;
                 }
-                long cardJoin = val.getSecond().getFirst();
-                join.remove(m);
-                val = DPTable.get(join);
-                long cardLeft = val.getSecond().getFirst();
-                join.clear();
-                join.add(m);
-                val = DPTable.get(join);
-                long cardRight = val.getSecond().getFirst();
-                //System.out.println("cardJoin: "+cardJoin);
-                //System.out.println("cardLeft: "+cardLeft);
-                //System.out.println("cardRight: "+cardRight);
-                double sel = ((double) cardJoin) / (cardLeft * cardRight);
-                //System.out.println("sel: "+sel);
                 accSel = accSel * sel;
            }
         }
@@ -743,12 +839,11 @@ class produceJoinOrderingFederationComplete {
         return card;
     }
 
-    public static void addRemainingTriples(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, BGP bgp, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
-//HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex, HashSet<Triple> triples, HashMap<Integer, Integer> cost, HashMap<Node, Tree<Triple>> map,HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets) {
+    public static void addRemainingTriples(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, BGP bgp, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
 
         List<Triple> ts = bgp.getBody();
-        System.out.println("ts: "+ts);
-        System.out.println("map: "+map);
+        //System.out.println("ts: "+ts);
+        //System.out.println("map: "+map);
         HashSet<Node> toAdd = new HashSet<Node>();
         for (Triple t : ts) {
             Node s = t.getSubject();
@@ -758,94 +853,48 @@ class produceJoinOrderingFederationComplete {
                 toAdd.add(s);
                 Set<Triple> set = new HashSet<Triple>();
                 set.add(t);
-                long c = costSubj(set, predicateIndexSubject);
+                long c = costSubj(set, predicateIndexSubj);
                 HashSet<Node> newEntry = new HashSet<Node>();
                 newEntry.add(s);
-                Vector<Tree<Pair<Integer,Triple>>> p = new Vector<Tree<Pair<Integer,Triple>>>();
+                Vector<Tree<Pair<Integer,Triple>>> vector = new Vector<Tree<Pair<Integer,Triple>>>();
                 Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(newEntry);
                 long prevC = Long.MAX_VALUE;
                 if (data != null) {
                     prevC = data.getSecond().getFirst();
                 }
                 // including the minimum cost if inferior to previous value
-                // order not really considered here... just computing the cardinality
-                if (c<Long.MAX_VALUE && c < prevC) {
-                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,0L))); 
+                if (c < prevC) { // if not there, cost is zero
+                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vector, new Pair<Long, Long>(c,0L))); 
                 }
             }
             if (!nodes.contains(o)) {
                 toAdd.add(o);
                 Set<Triple> set = new HashSet<Triple>();
                 set.add(t);
-                long c = costObj(set, predicateIndexObject);
+                long c = costObj(set, predicateIndexObj);
                 HashSet<Node> newEntry = new HashSet<Node>();
                 newEntry.add(o);
-                Vector<Tree<Pair<Integer,Triple>>> p = new Vector<Tree<Pair<Integer,Triple>>>();
+                Vector<Tree<Pair<Integer,Triple>>> vector = new Vector<Tree<Pair<Integer,Triple>>>();
                 Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(newEntry);
                 long prevC = Long.MAX_VALUE;
                 if (data != null) {
                     prevC = data.getSecond().getFirst();
                 }
                 // including the minimum cost if inferior to previous value
-                // order not really considered here... just computing the cardinality
-                if (c<Long.MAX_VALUE && c < prevC) {
-                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,0L))); 
+                if (c < prevC) {
+                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vector, new Pair<Long, Long>(c,0L))); 
                 }
             }
         }
         nodes.addAll(toAdd);
     }
 
-/*
-    public static void addRemainingTriples(HashMap<HashSet<Triple>, Pair<Vector<Triple>, Pair<Long,Long>>> DPTable, BGP bgp, HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex, HashSet<Triple> triples, HashMap<Integer, Integer> cost, HashMap<Node, Vector<Triple>> map,HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets) {
-
-        List<Triple> ts = bgp.getBody();
-        //System.out.println("ts: "+ts);
-        for (Triple t : ts) {
-            Node s = t.getSubject();
-            Node p = t.getPredicate();
-            Node o = t.getObject();
-            Vector<Triple> tps1 = new Vector<Triple>();
-            Vector<Triple> tps2 = new Vector<Triple>();
-            if (map.containsKey(s)) {
-                Node e = map.get(s).get(0).getSubject();
-                tps1.addAll(map.get(s));
-                s = e;
-            }
-            if (map.containsKey(o)) {
-                Node e = map.get(o).get(0).getSubject();
-                tps2.addAll(map.get(o));
-                o = e;
-            }
-            triples.add(t); 
-            HashSet<Triple> newEntry = new HashSet<Triple>();
-            newEntry.add(t);
-            t = new Triple(s, p, o);    
-            Vector<Triple> tps = new Vector<Triple>();
-            tps.add(t);
-            if (tps1.size()>0 && tps2.size()>0) {
-                HashSet<Triple> set = new HashSet<Triple>();
-                set.addAll(tps1);
-                set.addAll(tps);
-                tps1 = getStarJoinOrder(set, css, hc, additionalSets, predicateIndex, cost);
-                addCheapestCP(tps1, tps2, newEntry, new HashSet<Triple>(), css, cps, predicateIndex, DPTable);
-            } else if (tps1.size()>0) {
-                addCS(tps1, tps, new HashSet<Triple>(), newEntry, css, predicateIndex, DPTable, hc, additionalSets, cost);
-            } else if (tps2.size()>0) {
-                addCheapestCP(tps, tps2, newEntry, new HashSet<Triple>(), css, cps, predicateIndex, DPTable);
-            } else {
-                addCS(tps, new Vector<Triple>(), newEntry, new HashSet<Triple>(), css, predicateIndex, DPTable, hc, additionalSets, cost);
-            }
-           
-        }
-    }
-*/
-    public static boolean existsCPConnectionSubj(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static boolean existsCPConnectionSubj(Set<Triple> sq1, Set<Triple> sq2) {
 
         return existsCSConnectionSubj(sq1) && existsCSConnectionSubj(sq2) && (existsCPConnectionAux(sq1, sq2) || existsCPConnectionAux(sq2, sq1));
     }
 
-    public static boolean existsCPConnectionSubjObj(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static boolean existsCPConnectionSubjObj(Set<Triple> sq1, Set<Triple> sq2) {
         //System.out.println("existsCSConnectionSubj(sq1): "+existsCSConnectionSubj(sq1));
         //System.out.println("existsCSConnectionObj(sq2): "+existsCSConnectionObj(sq2));
         //System.out.println("existsCPConnectionAuxSO(sq1, sq2): "+existsCPConnectionAuxSO(sq1, sq2));
@@ -853,12 +902,12 @@ class produceJoinOrderingFederationComplete {
         return existsCSConnectionSubj(sq1) && existsCSConnectionObj(sq2) && existsCPConnectionAuxSO(sq1, sq2);
     }
 
-    public static boolean existsCPConnectionObj(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static boolean existsCPConnectionObj(Set<Triple> sq1, Set<Triple> sq2) {
 
         return existsCSConnectionObj(sq1) && existsCSConnectionObj(sq2) && (existsCPConnectionAux(sq1, sq2) || existsCPConnectionAux(sq2, sq1));
     }
 
-    public static boolean existsCPConnectionAux(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static boolean existsCPConnectionAux(Set<Triple> sq1, Set<Triple> sq2) {
 
         boolean e = false;
         Node c = sq2.iterator().next().getSubject();
@@ -869,7 +918,7 @@ class produceJoinOrderingFederationComplete {
         return e;
     }
 
-    public static boolean existsCPConnectionAuxSO(HashSet<Triple> sq1, HashSet<Triple> sq2) {
+    public static boolean existsCPConnectionAuxSO(Set<Triple> sq1, Set<Triple> sq2) {
 
         boolean e = false;
         Node c = sq2.iterator().next().getObject();
@@ -880,7 +929,7 @@ class produceJoinOrderingFederationComplete {
         return e;
     }
 
-    public static boolean existsCSConnectionSubj(HashSet<Triple> sq) {
+    public static boolean existsCSConnectionSubj(Set<Triple> sq) {
         boolean e = true;
         Node s = null;
         for (Triple t : sq) {
@@ -891,7 +940,7 @@ class produceJoinOrderingFederationComplete {
         return e;
     }
 
-    public static boolean existsCSConnectionObj(HashSet<Triple> sq) {
+    public static boolean existsCSConnectionObj(Set<Triple> sq) {
         boolean e = true;
         Node o = null;
         for (Triple t : sq) {
@@ -902,72 +951,116 @@ class produceJoinOrderingFederationComplete {
         return e;
     }
 
-    public static void estimateSelectivityCP(HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, BGP bgp) {
-//HashMap<Integer, Pair<Integer, HashMap<String, Integer>>> css, HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps, HashMap<String, HashSet<Integer>> predicateIndex, HashSet<Triple> triples,HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
+    public static void addSelectivity(HashSet<Node> keyS, HashSet<Node> keyO, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<HashSet<Node>, Double> selectivity) {
+
+        HashSet<Node> set = new HashSet<Node>();
+        set.addAll(keyS);
+        Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> val = DPTable.get(set);
+        long cardLeft = val.getSecond().getFirst();
+        set.clear();
+        set.addAll(keyO);
+        val = DPTable.get(set);
+        long cardRight = val.getSecond().getFirst();
+        set.addAll(keyS);
+        val = DPTable.get(set);
+        long cardJoin = val.getSecond().getFirst();
+        double sel = ((double) cardJoin) / (cardLeft * cardRight);
+
+        Double s = selectivity.get(set);
+        if (s == null || s > sel) {
+            selectivity.put(set, sel);
+        }
+    }
+
+    public static void estimateSelectivityCP(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, BGP bgp, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<HashSet<Node>, Double> selectivity) {
+
         List<Triple> ts = bgp.getBody();
+        HashMap<Triple, Triple> renamed = new HashMap<Triple, Triple>();
+        HashSet<Triple> newTs = renameBack(new HashSet<Triple>(ts), map, renamed);
+        Vector<HashSet<Node>> toRemove = new Vector<HashSet<Node>>();
         for (Triple t : ts) {
             Node s = t.getSubject();
             Node o = t.getObject();
-            Set<Triple> ts1 = obtainTriples(DPTable.get(s).getFirst());
-            Set<Triple> ts2 = obtainTriples(DPTable.get(o).getFirst());
-            for (Triple t1 : ts) {
+            HashSet<Node> keyS = new HashSet<Node>();
+            keyS.add(s);
+            Vector<Tree<Pair<Integer,Triple>>> valueS = DPTable.get(keyS).getFirst();
+            HashSet<Node> keyO = new HashSet<Node>();
+            keyO.add(o);
+            Vector<Tree<Pair<Integer,Triple>>> valueO = DPTable.get(keyO).getFirst();
+            Set<Triple> ts1 = new HashSet<Triple>();
+            if (valueS.size()>0) {
+                ts1.addAll(obtainTriples(valueS.get(0)));
+            }
+            Set<Triple> ts2 = new HashSet<Triple>();
+            if (valueO.size()>0) {
+                ts2.addAll(obtainTriples(valueO.get(0)));
+            }
+            Set<Triple> ts3 = new HashSet<Triple>();
+            Set<Triple> ts4 = new HashSet<Triple>();
+            Set<Triple> ts5 = new HashSet<Triple>();
+            Set<Triple> ts6 = new HashSet<Triple>();
+            if (ts1.size()>0 && centerIsSubject(ts1)) {
+                ts3.addAll(ts1);
+            }
+            if (ts1.size()>0 && centerIsObject(ts1)) {
+                ts4.addAll(ts1);
+            }
+            if (ts2.size()>0 && centerIsSubject(ts2)) {
+                ts5.addAll(ts2);
+            }
+            if (ts2.size()>0 && centerIsObject(ts2)) {
+                ts6.addAll(ts2);
+            }
+            for (Triple t1 : ts) { // t1 has meta-nodes
+                Triple t2 = renamed.get(t1); // t2 is t1 without the meta-nodes
                 if (t1.getSubject().equals(s)) {
-                    ts1.add(t1);
+                    ts3.add(t2);
+                }
+                if (t1.getObject().equals(s)) {
+                    ts4.add(t2);
+                }
+                if (t1.getSubject().equals(o)) {
+                    ts5.add(t2);
                 }
                 if (t1.getObject().equals(o)) {
-                    ts2.add(t1);
+                    ts6.add(t2);
                 }
             }
-
-        Vector<HashSet<Triple>> subqueries = new Vector<HashSet<Triple>>(DPTable.keySet());
-        for (int i = 0; i < subqueries.size(); i++) {
-            HashSet<Triple> sq1 = subqueries.get(i);
-            for (int j = i+1; j < subqueries.size(); j++) {
-                HashSet<Triple> sq2 = subqueries.get(j);
-                Vector<Tree<Pair<Integer,Triple>>> ts1 = DPTable.get(sq1).getFirst();
-                Vector<Tree<Pair<Integer,Triple>>> ts2 = DPTable.get(sq2).getFirst();
-                if (existsCPConnectionSubj(sq1, sq2)) {
-                    addCheapestCPSubj(ts1, ts2, sq1, sq2, predicateIndexSubj, DPTable); //css, cps, predicateIndex, DPTable);
-                }
-                if (existsCPConnectionObj(sq1, sq2)) {
-                    addCheapestCPObj(ts1, ts2, sq1, sq2, predicateIndexObj, DPTable); //css, cps, predicateIndex, DPTable);
-                }
-                System.out.println("L902. sq1: "+sq1+". sq2: "+sq2);
-                if (centerIsSubject(ts1.get(0)) && centerIsObject(ts2.get(0)) && existsCPConnectionSubjObj(sq1, sq2)) {
-                    System.out.println("EXISTS SUBJ OBJ CP CONNECTION");
-                    addCheapestCPSubjObj(ts1, ts2, sq1, sq2, predicateIndexSubj, predicateIndexObj, DPTable); //css, cps, predicateIndex, DPTable);
-                }
-                if (centerIsSubject(ts2.get(0)) && centerIsObject(ts1.get(0)) && existsCPConnectionSubjObj(sq2, sq1)) {
-                    System.out.println("EXISTS SUBJ OBJ CP CONNECTION INV");
-                    addCheapestCPSubjObj(ts2, ts1, sq2, sq1, predicateIndexSubj, predicateIndexObj, DPTable); //css, cps, predicateIndex, DPTable);
-                }
-                HashSet<Triple> sq = new HashSet<Triple>(sq1);
-                sq.addAll(sq2);
-                boolean csSubj = existsCSConnectionSubj(sq);
-                boolean csObj = existsCSConnectionObj(sq);
-                if (csSubj || csObj) {
-                    // just for the case of very expensive stars that were not included in the DPTable
-                    HashSet<Triple> ts = new HashSet<Triple>();
-                    for (Tree<Pair<Integer,Triple>> tmpTree : ts1) {
-                        for (Pair<Integer,Triple> pair : tmpTree.getElements()) {
-                            ts.add(pair.getSecond());
-                        }
-                    }
-                    for (Tree<Pair<Integer,Triple>> tmpTree : ts2) {
-                        for (Pair<Integer,Triple> pair : tmpTree.getElements()) {
-                            ts.add(pair.getSecond());
-                        }
-                    }
-                    //HashMap<Integer, Integer> css1 = new HashMap<Integer, Integer>(ts1.getCSDS());
-                    //HashMap<Integer, Integer> css1 = css.retainAll(ts2.getCS());
-                    if (csSubj) {
-                        addCSSubj(ts, sq, predicateIndexSubj, DPTable); //, hc, additionalSets, cost);
-                    }
-                    if (csObj) {
-                        addCSObj(ts, sq, predicateIndexObj, DPTable); //, hc, additionalSets, cost);
-                    }
+            boolean added = false;
+            if (ts3.size() > 0 && ts5.size() > 0 && existsCPConnectionSubj(ts3, ts5)) {
+                Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
+                Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderSubj(ts5, predicateIndexSubj);
+                if (p.size()>0 && q.size()>0) {
+                    added = added || addCheapestCPSubj(p, q, keyS, keyO, predicateIndexSubj, DPTable);
                 }
             }
+            if (ts4.size() > 0 && ts6.size() > 0 && existsCPConnectionObj(ts4, ts6)) {
+                Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderObj(ts4, predicateIndexObj);
+                Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderObj(ts6, predicateIndexObj);
+                if (p.size()>0 && q.size()>0) {
+                    added = added || addCheapestCPObj(p, q, keyS, keyO, predicateIndexObj, DPTable);
+                }
+            }
+            if (ts3.size() > 0 && ts6.size() > 0 && existsCPConnectionSubjObj(ts3, ts6)) {
+                HashSet<Triple> aux = new HashSet<Triple>(ts6);
+                aux.removeAll(ts3); // Linking triples are in both characteristic sets, they should appear only in one
+                Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
+                Vector<Tree<Pair<Integer,Triple>>> q = new Vector<Tree<Pair<Integer,Triple>>>();
+                if (aux.size()>0) {
+                    q = getStarJoinOrderObj(aux, predicateIndexObj);
+                }
+                if (p.size()>0 && q.size()>0) {
+                    added = added || addCheapestCPSubjObj(p, q, keyS, keyO, predicateIndexSubj, predicateIndexObj, DPTable);
+                }
+            }
+            if (added) {
+                toRemove.add(keyS);
+                toRemove.add(keyO);
+                addSelectivity(keyS, keyO, DPTable, selectivity);
+            }
+        }
+        for (HashSet<Node> s : toRemove) {
+            DPTable.remove(s);
         }
     }
 
@@ -1001,14 +1094,15 @@ class produceJoinOrderingFederationComplete {
         }
     }
 
-    public static void addCheapestCPSubj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Triple> sq1, HashSet<Triple> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+    public static boolean addCheapestCPSubj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
         Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeSubj(ts1, ts2, predicateIndex); 
         long cost = costTree.getFirst();
         Vector<Tree<Pair<Integer,Triple>>> tree = costTree.getSecond();
-        
+
+        //System.out.println("(S) cost of "+tree+"("+ts1+" and "+ts2+"): "+cost);        
         //System.out.println("cost of "+sq2+" and "+sq1+": "+cost21);
-        HashSet<Triple> set = new HashSet<Triple>(sq1);
+        HashSet<Node> set = new HashSet<Node>(sq1);
         set.addAll(sq2);
 
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
@@ -1021,17 +1115,19 @@ class produceJoinOrderingFederationComplete {
         if (cost<Long.MAX_VALUE && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
             DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+            return true;
         }
+        return false;
     }
 
-    public static void addCheapestCPSubjObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Triple> sq1, HashSet<Triple> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+    public static boolean addCheapestCPSubjObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
         Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeSubjObj(ts1, ts2, predicateIndexSubj, predicateIndexObj); 
         long cost = costTree.getFirst();
         Vector<Tree<Pair<Integer,Triple>>> tree = costTree.getSecond();
         
-        System.out.println("cost of "+ts1+" and "+ts2+": "+cost);
-        HashSet<Triple> set = new HashSet<Triple>(sq1);
+        //System.out.println("(SO) cost of "+tree+"("+ts1+" and "+ts2+"): "+cost);        
+        HashSet<Node> set = new HashSet<Node>(sq1);
         set.addAll(sq2);
 
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
@@ -1044,17 +1140,19 @@ class produceJoinOrderingFederationComplete {
         if (cost<Long.MAX_VALUE && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
             DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+            return true;
         }
+        return false;
     }
 
-    public static void addCheapestCPObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Triple> sq1, HashSet<Triple> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+    public static boolean addCheapestCPObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
         Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeObj(ts1, ts2, predicateIndex); 
         long cost = costTree.getFirst();
         Vector<Tree<Pair<Integer,Triple>>> tree = costTree.getSecond();
-        
+        //System.out.println("(O) cost of "+tree+"("+ts1+" and "+ts2+"): "+cost);        
         //System.out.println("cost of "+sq2+" and "+sq1+": "+cost21);
-        HashSet<Triple> set = new HashSet<Triple>(sq1);
+        HashSet<Node> set = new HashSet<Node>(sq1);
         set.addAll(sq2);
 
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
@@ -1067,12 +1165,19 @@ class produceJoinOrderingFederationComplete {
         if (cost<Long.MAX_VALUE && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
             DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+            return true;
         }
+        return false;
     }
 
     public static Vector<Tree<Pair<Integer,Triple>>> makeTree(Vector<Tree<Pair<Integer,Triple>>> treeL, Vector<Tree<Pair<Integer,Triple>>> treeR, HashMap<Integer, HashSet<Integer>> sources) {
         Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
         if (sources == null) {
+            if (treeL.size() == 0) {
+                res.addAll(treeR);
+            } else if (treeR.size() == 0) {
+                res.addAll(treeL);
+            }
             for (int i = 0; i < treeL.size(); i++) {
                 Tree<Pair<Integer,Triple>> tL = treeL.get(i);
                 for (int j = 0; j < treeR.size(); j++) {
@@ -1947,7 +2052,7 @@ class produceJoinOrderingFederationComplete {
                 //sortedStar.add(t);
             }
         }
-        System.out.println("sorted star before considering constants: "+sortedStar);
+        //System.out.println("sorted star before considering constants: "+sortedStar);
         considerConstants(sortedStar, predicateIndex, subjCenter);
         return sortedStar;
     }
@@ -1994,49 +2099,7 @@ class produceJoinOrderingFederationComplete {
         }
     }
 
-    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderSubj(HashSet<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
-        HashSet<String> ps = new HashSet<String>();
-        HashMap<String, Triple> map = new HashMap<String, Triple>();
-        HashSet<Triple> remainingTriples = new HashSet<Triple>();
-        for (Triple t : ts) {
-            Node p = t.getPredicate(); 
-            if (p.isURI()) {
-                String pStr = "<"+p.getURI()+">";
-                ps.add(pStr);
-                map.put(pStr, t);
-            } else {
-                remainingTriples.add(t);
-            }
-        }
-        HashMap<Integer, HashSet<Integer>> dsCss = computeRelevantCS(ps, predicateIndex);
-        System.out.println("dsCss for the star: "+dsCss);
-        Vector<Tree<Pair<Integer,Triple>>> vTree = new Vector<Tree<Pair<Integer,Triple>>>();
-        //HashMap<Integer, Tree<Triple>> dsTree = new HashMap<Integer, Tree<Triple>>();
-
-        for (Integer ds : dsCss.keySet()) {
-            HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSSubj(ds);
-            HashMap<Integer, Integer> hc = getHCSubj(ds);
-            HashMap<Integer, Set<String>> additionalSets = getAdditionalSetsSubj(ds);
-            HashMap<Integer, Integer> cost = getCostSubj(ds);
-            HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndexSubj(ds, predicateIndex);
-            LinkedList<String> orderedPs = produceStarJoinOrdering.getStarJoinOrdering(ps, css, hc, additionalSets, predicateIndexDS, cost);
-            System.out.println("list of sorted predicates: "+orderedPs);
-            Tree<Pair<Integer,Triple>> sortedStar = convertToTree(orderedPs, map, ds, predicateIndex, true);
-            System.out.println("tree of sorted triples: "+sortedStar);
-            for (Triple t : remainingTriples) {
-                Leaf<Pair<Integer,Triple>> leaf = new Leaf<Pair<Integer,Triple>>(new Pair<Integer,Triple>(ds, t));
-                if (sortedStar == null) {
-                    sortedStar = leaf;
-                } else {
-                    sortedStar = new Branch<Pair<Integer,Triple>>(sortedStar, leaf);
-                }
-            }
-            vTree.add(sortedStar);
-        }
-        return vTree;
-    }
-
-    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderObj(HashSet<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
+    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderSubj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
         HashSet<String> ps = new HashSet<String>();
         HashMap<String, Triple> map = new HashMap<String, Triple>();
         HashSet<Triple> remainingTriples = new HashSet<Triple>();
@@ -2052,6 +2115,48 @@ class produceJoinOrderingFederationComplete {
         }
         HashMap<Integer, HashSet<Integer>> dsCss = computeRelevantCS(ps, predicateIndex);
         //System.out.println("dsCss for the star: "+dsCss);
+        Vector<Tree<Pair<Integer,Triple>>> vTree = new Vector<Tree<Pair<Integer,Triple>>>();
+        //HashMap<Integer, Tree<Triple>> dsTree = new HashMap<Integer, Tree<Triple>>();
+
+        for (Integer ds : dsCss.keySet()) {
+            HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSSubj(ds);
+            HashMap<Integer, Integer> hc = getHCSubj(ds);
+            HashMap<Integer, Set<String>> additionalSets = getAdditionalSetsSubj(ds);
+            HashMap<Integer, Integer> cost = getCostSubj(ds);
+            HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndexSubj(ds, predicateIndex);
+            LinkedList<String> orderedPs = produceStarJoinOrdering.getStarJoinOrdering(ps, css, hc, additionalSets, predicateIndexDS, cost);
+            //System.out.println("list of sorted predicates: "+orderedPs);
+            Tree<Pair<Integer,Triple>> sortedStar = convertToTree(orderedPs, map, ds, predicateIndex, true);
+            //System.out.println("tree of sorted triples: "+sortedStar);
+            for (Triple t : remainingTriples) {
+                Leaf<Pair<Integer,Triple>> leaf = new Leaf<Pair<Integer,Triple>>(new Pair<Integer,Triple>(ds, t));
+                if (sortedStar == null) {
+                    sortedStar = leaf;
+                } else {
+                    sortedStar = new Branch<Pair<Integer,Triple>>(sortedStar, leaf);
+                }
+            }
+            vTree.add(sortedStar);
+        }
+        return vTree;
+    }
+
+    public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderObj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
+        HashSet<String> ps = new HashSet<String>();
+        HashMap<String, Triple> map = new HashMap<String, Triple>();
+        HashSet<Triple> remainingTriples = new HashSet<Triple>();
+        for (Triple t : ts) {
+            Node p = t.getPredicate(); 
+            if (p.isURI()) {
+                String pStr = "<"+p.getURI()+">";
+                ps.add(pStr);
+                map.put(pStr, t);
+            } else {
+                remainingTriples.add(t);
+            }
+        }
+        HashMap<Integer, HashSet<Integer>> dsCss = computeRelevantCS(ps, predicateIndex);
+        //System.out.println("dsCss for the star: "+dsCss+". ps: "+ps);
         Vector<Tree<Pair<Integer,Triple>>> vTree = new Vector<Tree<Pair<Integer,Triple>>>();
         //HashMap<Integer, Tree<Triple>> dsTree = new HashMap<Integer, Tree<Triple>>();
 
