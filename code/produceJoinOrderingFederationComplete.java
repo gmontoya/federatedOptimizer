@@ -134,9 +134,9 @@ class produceJoinOrderingFederationComplete {
             String datasetStr2 = datasets.get(ds2);
             String fileCPS = folder;
             if (datasetStr1.equals(datasetStr2)) {
-                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_reduced"; //10000CS";
+                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_reduced10000CS";
             } else {
-                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_reduced_MIP"; //10000CS_MIP";
+                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_reduced10000CS_MIP";
             }
             c = readCPS(fileCPS);
             cpsSubj.add(pos, c);
@@ -166,9 +166,9 @@ class produceJoinOrderingFederationComplete {
             String datasetStr2 = datasets.get(ds2);
             String fileCPS = folder;
             if (datasetStr1.equals(datasetStr2)) {
-                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_subj_obj_reduced"; //10000CS";
+                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_subj_obj_reduced10000CS";
             } else {
-                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_subj_obj_reduced_MIP"; //10000CS_MIP";
+                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_subj_obj_reduced10000CS_MIP";
             }
             c = readCPS(fileCPS);
             cpsSubjObj.add(pos, c);
@@ -198,9 +198,9 @@ class produceJoinOrderingFederationComplete {
             String datasetStr2 = datasets.get(ds2);
             String fileCPS = folder;
             if (datasetStr1.equals(datasetStr2)) {
-                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_obj_reduced"; //10000CS";
+                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_obj_reduced10000CS";
             } else {
-                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_obj_reduced_MIP"; //10000CS_MIP";
+                fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_obj_reduced10000CS_MIP";
             }
             c = readCPS(fileCPS);
             cpsObj.add(pos, c);
@@ -212,16 +212,16 @@ class produceJoinOrderingFederationComplete {
         int pos = cssSubj.size();
         datasetsIdPosSubj.put(ds, pos);
         String datasetStr = datasets.get(ds);
-        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_reduced"; //10000CS";
+        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_reduced10000CS";
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> cs = produceStarJoinOrdering.readCSS(fileCSS);
         cssSubj.add(pos, cs);
-        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_reduced"; //10000CS";
+        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_reduced10000CS";
         HashMap<Integer, Integer> hc = produceStarJoinOrdering.readMap(fileHC);
         hcsSubj.add(pos, hc);
-        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_reduced"; //10000CS";
+        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_reduced10000CS";
         HashMap<Integer, Set<String>> ass = produceStarJoinOrdering.readAdditionalSets(fileAdditionalSets);
         additionalSetsSubj.add(pos, ass);
-        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_reduced"; //10000CS";
+        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_reduced10000CS";
         HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
         costsSubj.add(pos, cost);
         return pos;
@@ -231,16 +231,16 @@ class produceJoinOrderingFederationComplete {
         int pos = cssObj.size();
         datasetsIdPosObj.put(ds, pos);
         String datasetStr = datasets.get(ds);
-        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_obj_reduced"; //10000CS";
+        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_obj_reduced10000CS";
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> cs = produceStarJoinOrdering.readCSS(fileCSS);
         cssObj.add(pos, cs);
-        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_obj_reduced"; //10000CS";
+        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_obj_reduced10000CS";
         HashMap<Integer, Integer> hc = produceStarJoinOrdering.readMap(fileHC);
         hcsObj.add(pos, hc);
-        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_obj_reduced"; //10000CS";
+        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_obj_reduced10000CS";
         HashMap<Integer, Set<String>> ass = produceStarJoinOrdering.readAdditionalSets(fileAdditionalSets);
         additionalSetsObj.add(pos, ass);
-        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_obj_reduced"; //10000CS";
+        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_obj_reduced10000CS";
         HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
         costsObj.add(pos, cost);
         return pos;
@@ -307,7 +307,7 @@ class produceJoinOrderingFederationComplete {
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predIndex = new HashMap<String, HashMap<Integer,HashSet<Integer>>>();
         for (int i = 0; i < datasets.size(); i++) {
             String datasetStr = datasets.get(i);
-            String fileName = folder+"/"+datasetStr+"/statistics"+datasetStr+"_pi"+suffix+"_reduced"; //10000CS";
+            String fileName = folder+"/"+datasetStr+"/statistics"+datasetStr+"_pi"+suffix+"_reduced10000CS";
             
             try {
                 ObjectInputStream in = new ObjectInputStream(
@@ -385,7 +385,7 @@ class produceJoinOrderingFederationComplete {
             HashMap<Triple,Triple> renamed = new HashMap<Triple,Triple>();
             HashSet<Triple> renamedStar = rename(s, map, renamed);
             // for updating the bgp consider the renamed star
-            Node nn = update(bgp, renamedStar, i);
+            Node nn = update(bgp, renamedStar, i, map);
             // current star should be consistent with renamed star
             s.clear();
             for (Triple t : renamedStar) {
@@ -421,7 +421,7 @@ class produceJoinOrderingFederationComplete {
                 HashSet<Node> ns = new HashSet<Node>();
                 ns.add(nn);
                 nodes.add(nn);
-                DPTable.put(ns, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(cost,0L))); 
+                DPTable.put(ns, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(cost,cost))); //0L))); 
             }
         }
         
@@ -747,7 +747,7 @@ class produceJoinOrderingFederationComplete {
                     //System.out.println("sss: "+sss);
                     //System.out.println("(A) vTreeNS: "+vTreeNS);
                     //System.out.println("(A) vTreeSS: "+vTreeSS+"DPTable.get(sss).getFirst(): "+DPTable.get(sss).getFirst());
-                    Long cost = card + DPTable.get(ns).getSecond().getFirst()+DPTable.get(sss).getSecond().getFirst();
+                    Long cost = card + DPTable.get(ns).getSecond().getSecond()+DPTable.get(sss).getSecond().getSecond();
                     HashSet<Node> newEntry = new HashSet<Node>(ns);
                     newEntry.addAll(sss);
                     //System.out.println("newEntry: "+newEntry+". cost: "+cost);
@@ -864,7 +864,7 @@ class produceJoinOrderingFederationComplete {
                 }
                 // including the minimum cost if inferior to previous value
                 if (c < prevC) { // if not there, cost is zero
-                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vector, new Pair<Long, Long>(c,0L))); 
+                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vector, new Pair<Long, Long>(c,c))); //0L))); 
                 }
             }
             if (!nodes.contains(o)) {
@@ -882,7 +882,7 @@ class produceJoinOrderingFederationComplete {
                 }
                 // including the minimum cost if inferior to previous value
                 if (c < prevC) {
-                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vector, new Pair<Long, Long>(c,0L))); 
+                    DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vector, new Pair<Long, Long>(c,c))); //0L))); 
                 }
             }
         }
@@ -1027,21 +1027,21 @@ class produceJoinOrderingFederationComplete {
                 }
             }
             boolean added = false;
-            if (ts3.size() > 0 && ts5.size() > 0 && existsCPConnectionSubj(ts3, ts5)) {
+            if (ts3.size() > 0 && ts5.size() > 0 && centerIsSubject(ts3) && centerIsSubject(ts5) && existsCPConnectionSubj(ts3, ts5)) {
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
                 Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderSubj(ts5, predicateIndexSubj);
                 if (p.size()>0 && q.size()>0) {
                     added = added || addCheapestCPSubj(p, q, keyS, keyO, predicateIndexSubj, DPTable);
                 }
             }
-            if (ts4.size() > 0 && ts6.size() > 0 && existsCPConnectionObj(ts4, ts6)) {
+            if (ts4.size() > 0 && ts6.size() > 0 && centerIsObject(ts4) && centerIsObject(ts6) && existsCPConnectionObj(ts4, ts6)) {
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderObj(ts4, predicateIndexObj);
                 Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderObj(ts6, predicateIndexObj);
                 if (p.size()>0 && q.size()>0) {
                     added = added || addCheapestCPObj(p, q, keyS, keyO, predicateIndexObj, DPTable);
                 }
             }
-            if (ts3.size() > 0 && ts6.size() > 0 && existsCPConnectionSubjObj(ts3, ts6)) {
+            if (ts3.size() > 0 && ts6.size() > 0 && centerIsSubject(ts3) && centerIsObject(ts6) && existsCPConnectionSubjObj(ts3, ts6)) {
                 HashSet<Triple> aux = new HashSet<Triple>(ts6);
                 aux.removeAll(ts3); // Linking triples are in both characteristic sets, they should appear only in one
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
@@ -1075,7 +1075,7 @@ class produceJoinOrderingFederationComplete {
         long c = cssCostTreeSubj(p, predicateIndex); 
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(newEntry);
         if (data == null || data.getSecond().getFirst()>c) {
-            DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,0L)));
+            DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,c))); //0L)));
         }
     }
 
@@ -1090,7 +1090,7 @@ class produceJoinOrderingFederationComplete {
         long c = cssCostTreeObj(p, predicateIndex); 
         Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(newEntry);
         if (data == null || data.getSecond().getFirst()>c) {
-            DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,0L)));
+            DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,c))); //0L)));
         }
     }
 
@@ -1112,9 +1112,9 @@ class produceJoinOrderingFederationComplete {
         }
         // including the minimum cost if inferior to previous value
         // order not really considered here... just computing the cardinality
-        if (cost<Long.MAX_VALUE && cost < c) {
+        if (cost>0 && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
-            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,cost))); //0L)));
             return true;
         }
         return false;
@@ -1137,9 +1137,9 @@ class produceJoinOrderingFederationComplete {
         }
         // including the minimum cost if inferior to previous value
         // order not really considered here... just computing the cardinality
-        if (cost<Long.MAX_VALUE && cost < c) {
+        if (cost>0 && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
-            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,cost))); //0L)));
             return true;
         }
         return false;
@@ -1162,9 +1162,9 @@ class produceJoinOrderingFederationComplete {
         }
         // including the minimum cost if inferior to previous value
         // order not really considered here... just computing the cardinality
-        if (cost<Long.MAX_VALUE && cost < c) {
+        if (cost>0 && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
-            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,0L)));
+            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,cost))); //0L)));
             return true;
         }
         return false;
@@ -1356,29 +1356,31 @@ class produceJoinOrderingFederationComplete {
         Integer count = cPs.getFirst();
         //System.out.println("p: "+p);
         for (String p1 : ps1) {
+            Triple t = map1.get(p1);
+            Node s = t.getSubject();
+            Node o = t.getObject();
             // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
             if (original || !p1.equals(p)) {
                 //System.out.println("p1: "+p1);
-                Triple t = map1.get(p1);
-                Node s = t.getSubject();
-                Node o = t.getObject();
                 boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
                 if (c) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     sel = sel*(((double)p_m)/count);
                     //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
+            }
                 if (!o.isVariable()) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     Integer p_d = cPs.getSecond().get(p1).getSecond();
-                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    //System.out.println("o: "+o+". p_m: "+p_m+". p_d: "+p_d);
                     double tmp = 1.0/ p_d;
                     if (tmp < selTmp) {
                         selTmp = tmp;
                     }
                 }
-            }
+            
         }
+        //System.out.println("selTmp: "+selTmp);
         sel = sel * selTmp; // CONSIDER CONSTANTS first star
         selTmp = 1.0;
         count = cPs2.getFirst();
@@ -1396,13 +1398,14 @@ class produceJoinOrderingFederationComplete {
             if (!o.isVariable()) {
                 Integer p_m = cPs2.getSecond().get(p2).getFirst();
                 Integer p_d = cPs2.getSecond().get(p2).getSecond();
-                //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                //System.out.println("o: "+o+". p_m: "+p_m+". p_d: "+p_d);
                 double tmp = 1.0/ p_d;
                 if (tmp < selTmp) {
                     selTmp = tmp;
                 }
             }
         }
+        //System.out.println("selTmp: "+selTmp);
         sel = sel * selTmp;  // CONSIDER CONSTANTS second star
         //System.out.println("m: "+m+". sel: "+sel);
         //System.out.println("sel: "+sel);
@@ -1416,55 +1419,59 @@ class produceJoinOrderingFederationComplete {
         Integer count = cPs.getFirst();
         //System.out.println("p: "+p);
         for (String p1 : ps1) {
+            Triple t = map1.get(p1);
+            Node s = t.getSubject();
+            Node o = t.getObject();
             // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
             if (original || !p1.equals(p)) {
                 //System.out.println("p1: "+p1);
-                Triple t = map1.get(p1);
-                Node s = t.getSubject();
-                Node o = t.getObject();
                 boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
                 if (c) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     sel = sel*(((double)p_m)/count);
                     //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
+            }
                 if (!o.isVariable()) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     Integer p_d = cPs.getSecond().get(p1).getSecond();
-                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    //System.out.println("o: "+o+". p_m: "+p_m+". p_d: "+p_d);
                     double tmp = 1.0/ p_d;
                     if (tmp < selTmp) {
                         selTmp = tmp;
                     }
                 }
-            }
+            
         }
+        //System.out.println("selTmp: "+selTmp);
         sel = sel * selTmp; // CONSIDER CONSTANTS first star
         selTmp = 1.0;
         count = cPs2.getFirst();
         for (String p2 : ps2) {
+            Triple t = map2.get(p2);
+            Node s = t.getSubject();
+            Node o = t.getObject();
             //System.out.println("p2: "+p2);
             if (original || !p2.equals(p)) {
-                Triple t = map2.get(p2);
-                Node s = t.getSubject();
-                Node o = t.getObject();
                 boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
                 if (c) {
                     Integer p_m = cPs2.getSecond().get(p2).getFirst();
                     sel = sel*(((double)p_m)/count);
                     //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
+            }
                 if (!s.isVariable()) {
                     Integer p_m = cPs2.getSecond().get(p2).getFirst();
                     Integer p_d = cPs2.getSecond().get(p2).getSecond();
-                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    //System.out.println("s: "+s+". p_m: "+p_m+". p_d: "+p_d);
                     double tmp = 1.0/ p_d;
                     if (tmp < selTmp) {
                         selTmp = tmp;
                     }
                 }
-            }
+            
         }
+        //System.out.println("selTmp: "+selTmp);
         sel = sel * selTmp;  // CONSIDER CONSTANTS second star
         //System.out.println("m: "+m+". sel: "+sel);
         //System.out.println("sel: "+sel);
@@ -1491,39 +1498,42 @@ class produceJoinOrderingFederationComplete {
                 if (!s.isVariable()) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     Integer p_d = cPs.getSecond().get(p1).getSecond();
-                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    //System.out.println("s: "+s+". p_m: "+p_m+". p_d: "+p_d);
                     double tmp = 1.0/ p_d;
                     if (tmp < selTmp) {
                         selTmp = tmp;
                     }
                 }
         }
+        //System.out.println("selTmp: "+selTmp);
         sel = sel * selTmp; // CONSIDER CONSTANTS first star
         selTmp = 1.0;
         count = cPs2.getFirst();
         for (String p2 : ps2) {
+            Triple t = map2.get(p2);
+            Node s = t.getSubject();
+            Node o = t.getObject();
             //System.out.println("p2: "+p2);
             if (original || !p2.equals(p)) {
-                Triple t = map2.get(p2);
-                Node s = t.getSubject();
-                Node o = t.getObject();
                 boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
                 if (c) {
                     Integer p_m = cPs2.getSecond().get(p2).getFirst();
                     sel = sel*(((double)p_m)/count);
                     //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
+            }
                 if (!s.isVariable()) {
                     Integer p_m = cPs2.getSecond().get(p2).getFirst();
                     Integer p_d = cPs2.getSecond().get(p2).getSecond();
-                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
+                    //System.out.println("s: "+s+"p_m: "+p_m+". p_d: "+p_d);
                     double tmp = 1.0/ p_d;
                     if (tmp < selTmp) {
                         selTmp = tmp;
                     }
                 }
-            }
+            
         }
+        //System.out.println("selTmp: "+selTmp);
         sel = sel * selTmp;  // CONSIDER CONSTANTS second star
         //System.out.println("m: "+m+". sel: "+sel);
         //System.out.println("sel: "+sel);
@@ -1581,6 +1591,7 @@ class produceJoinOrderingFederationComplete {
                             Triple t2 = sq2.iterator().next();
                             if (t1.getObject().equals(t2.getSubject())) {
                                 Long m1 = getMultiplicitySubj(links12.get(p), p, cPs, ps1, map1, cPs2, ps2, map2);
+                                //System.out.println("(S1) multiplicity went from "+links12.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult12.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -1602,6 +1613,7 @@ class produceJoinOrderingFederationComplete {
                             Triple t1 = sq1.iterator().next();
                             if (t2.getObject().equals(t1.getSubject())) {
                                 Long m1 = getMultiplicitySubj(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
+                                //System.out.println("(S2) multiplicity went from "+links21.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult21.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -1678,6 +1690,7 @@ class produceJoinOrderingFederationComplete {
                             Triple t2 = sq2.iterator().next();
                             if (t1.getObject().equals(t2.getObject())) {
                                 Long m1 = getMultiplicitySubjObj(links12.get(p), p, cPs, ps1, map1, cPs2, ps2, map2);
+                                //System.out.println("(SO) multiplicity went from "+links12.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult12.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -1750,6 +1763,7 @@ class produceJoinOrderingFederationComplete {
                             Triple t2 = map2.get(p); //sq2.iterator().next();
                             if (t1.getObject().equals(t2.getSubject())) {
                                 Long m1 = getMultiplicityObj(links12.get(p), p,  cPs, ps1, map1, cPs2, ps2, map2);
+                                //System.out.println("(O1) multiplicity went from "+links12.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult12.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -1771,6 +1785,7 @@ class produceJoinOrderingFederationComplete {
                             Triple t1 = map1.get(p); //sq1.iterator().next();
                             if (t2.getObject().equals(t1.getSubject())) {
                                 Long m1 = getMultiplicityObj(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
+                                //System.out.println("(O2) multiplicity went from "+links21.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult21.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
@@ -2183,7 +2198,7 @@ class produceJoinOrderingFederationComplete {
         return vTree;
     }
 
-    public static Node update(BGP bgp, HashSet<Triple> star, int i) {
+    public static Node update(BGP bgp, HashSet<Triple> star, int i, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
 
         boolean subjCenter = centerIsSubject(star);
         List<Triple> ts = bgp.getBody();
@@ -2223,6 +2238,10 @@ class produceJoinOrderingFederationComplete {
                 ts.add(t);
                 toRemove.add(t);
             }
+            if (map.containsKey(s) || map.containsKey(o)) {
+                ts.add(t);
+                toRemove.add(t);
+            }
         }
         //System.out.println("ts after adding star connecting triples: "+ts);
         //System.out.println("toRemove: "+toRemove);
@@ -2230,11 +2249,11 @@ class produceJoinOrderingFederationComplete {
         if (toRemove.size()>0) {
             star.removeAll(toRemove);
             toRemove.clear();
-        } else { // stars not connected by an object also need a triple as connection
+        } /*else { // stars not connected by an object also need a triple as connection
             Triple t = star.iterator().next();
             star.remove(t);
             ts.add(t);
-        }
+        }*/
         //System.out.println("ts after adding missing star connecting triples: "+ts);
 
         // possible connections with the star triples

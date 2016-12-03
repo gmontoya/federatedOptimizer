@@ -239,7 +239,7 @@ class produceJoinOrderingVOID {
                     continue;
                 }
                 Long card = getCard(DPTable, ns, ss);
-                Long cost = card + DPTable.get(ns).getSecond().getFirst()+DPTable.get(ss).getSecond().getFirst();
+                Long cost = card + DPTable.get(ns).getSecond().getSecond()+DPTable.get(ss).getSecond().getSecond();
                 HashSet<Triple> newEntry = new HashSet<Triple>(ns);
                 newEntry.addAll(ss);
                 Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> pair = DPTableAux.get(newEntry);
@@ -312,7 +312,7 @@ class produceJoinOrderingVOID {
             Leaf<Pair<Integer,Triple>> leaf = new Leaf<Pair<Integer,Triple>>(new Pair<Integer,Triple>(ds, t));
             vTree.add(leaf);
         }
-        DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vTree, new Pair<Long, Long>(card,0L)));
+        DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(vTree, new Pair<Long, Long>(card,card))); //0L)));
     }
 
     public static long getCardinalityEstimationTriple(Triple t, Set<Integer> dss, HashMap<Integer, Vector<Integer>> globalStats, HashMap<String, HashMap<Integer, Pair<Integer, Pair<Integer, Integer>>>> propertyStats, HashMap<String, HashMap<Integer, Integer>> classStats) {
@@ -702,7 +702,7 @@ class produceJoinOrderingVOID {
         // including the minimum cost if inferior to previous value
         // order not really considered here... just computing the cardinality
         if (card > 0 && card < c) {
-            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(resTree, new Pair<Long, Long>(card,0L)));
+            DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(resTree, new Pair<Long, Long>(card,card))); //0L)));
         }
     }
 
