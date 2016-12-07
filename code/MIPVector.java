@@ -86,4 +86,9 @@ class MIPVector implements java.io.Serializable {
         long o = Math.round(Math.ceil((r*(this.size+other.size))/(r+1)));
         return o;
     }
+
+    public String toString() {
+
+        return "{ s: "+size+", n: "+N+", v: "+mip+" }";
+    }
 }
