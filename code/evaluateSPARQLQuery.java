@@ -7,6 +7,8 @@ import com.hp.hpl.jena.graph.NodeFactory;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.query.QueryFactory;
 
+import org.apache.log4j.BasicConfigurator;
+
 import com.hp.hpl.jena.sparql.expr.ExprList;
 
 import com.hp.hpl.jena.sparql.algebra.*;
@@ -16,6 +18,7 @@ import com.hp.hpl.jena.sparql.syntax.*;
 import com.fluidops.fedx.*;
 import com.fluidops.fedx.structures.Endpoint;
 import org.openrdf.query.*;
+import com.fluidops.fedx.util.EndpointFactory;
 
 class evaluateSPARQLQuery {
     // DatasetId --> Position, for data related to CS-Subj
@@ -403,7 +406,8 @@ class evaluateSPARQLQuery {
     }
 
     public static void main(String[] args) {
-
+        //BasicConfigurator.configure();
+        long t0 = System.currentTimeMillis();
         String queryFile = args[0];
         String datasetsFile = args[1];
         folder = args[2];
@@ -412,7 +416,7 @@ class evaluateSPARQLQuery {
         original = Boolean.parseBoolean(args[5]);
         String fileName = args[6];
         String generalPredicatesFile = args[7];
-        generalPredicates = readPredicates(generalPredicatesFile);
+        //generalPredicates = readPredicates(generalPredicatesFile);
         datasets = readDatasets(datasetsFile);
         globalStats = new HashMap<Integer, Vector<Integer>>();
         // Predicate --> DatasetId --> (numTriples, (numDistSubj, numDistObj))
@@ -437,7 +441,9 @@ class evaluateSPARQLQuery {
         distinct = query.isDistinct();
         projectedVariables = query.getProjectVars();
         // sub-query --> <order, <cardinality,cost>>
-
+        long t1 = System.currentTimeMillis();
+        System.out.println("loading: "+(t1-t0));
+        long t2 = System.currentTimeMillis();
         for (HashSet<Triple> triples : bgps) {
             HashSet<Triple> ts = new HashSet<Triple>(triples);
             boolean vars = false;
@@ -451,7 +457,11 @@ class evaluateSPARQLQuery {
                 break;
             }
             HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
+            t0 = System.currentTimeMillis();
             Vector<HashSet<Triple>> stars = getStars(triples, budget, predicateIndexSubj, predicateIndexObj); //css, predicateIndex, cost);
+            t1 = System.currentTimeMillis();
+            System.out.println("getStars: "+(t1-t0));
+            t0 = System.currentTimeMillis();
             //System.out.println("stars: "+stars);
             int i = 1;
             //HashSet<Triple> triples = new HashSet<Triple>();
@@ -502,26 +512,45 @@ class evaluateSPARQLQuery {
                     DPTable.put(ns, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(cost,cost))); //0L))); 
                 }
             }
-        
+            t1 = System.currentTimeMillis();
+            System.out.println("stars have been added to DPTable: "+(t1-t0));
+            t0 = System.currentTimeMillis();
             //System.out.println("map: "+map);
             //System.out.println("DPTable before add.. :"+DPTable);
             addRemainingTriples(DPTable, triples, predicateIndexSubj, predicateIndexObj, nodes, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
+            t1 = System.currentTimeMillis();
+            System.out.println("addRemainingTriples: "+(t1-t0));
+            t0 = System.currentTimeMillis();
             //System.out.println("DPTable after add.. :"+DPTable);
             // may have to consider already intermediate results in the CP estimation for the cost
             HashMap<HashSet<Node>, Double> selectivity = new HashMap<HashSet<Node>, Double>();
             //HashMap<HashSet<Node>, Vector<Tree<Pair<Integer,Triple>>>> selectivity = new HashMap<HashSet<Node>, Double>();
             estimateSelectivityCP(DPTable, predicateIndexSubj, predicateIndexObj, nodes, triples, map, selectivity); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
+            t1 = System.currentTimeMillis();
+            System.out.println("estimateSelectivity: "+(t1-t0));
+            t0 = System.currentTimeMillis();
             //System.out.println("DPTable after CP estimation.. :"+DPTable);
             //LOG System.out.println("selectivity :"+selectivity);
             //System.out.println("nodes :"+nodes);
             computeJoinOrderingDP(DPTable, nodes, selectivity);
+            t1 = System.currentTimeMillis();
+            System.out.println("computeJoinOrdering: "+(t1-t0));
+            //t0 = System.currentTimeMillis();
             Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(nodes);
             if (res != null) {
                 plans.put(ts, res.getFirst());
+            System.out.println("Cardinality: "+res.getSecond().getFirst());
+            System.out.println("Cost: "+res.getSecond().getSecond());
                 //System.out.println(res.getFirst());
             }
         }
+        t1 = System.currentTimeMillis();
+        System.out.println("processing: "+(t1-t2));
+        t0 = System.currentTimeMillis();
         Query newQuery = produceQueryWithServiceClauses(query, plans);
+        t1 = System.currentTimeMillis();
+        System.out.println("rewriting: "+(t1-t0));
+        t0 = System.currentTimeMillis();
         if (newQuery != null) {
             //System.out.println("Plan: "+newQuery);
             //write(newQuery.toString(), fileName);
@@ -529,15 +558,21 @@ class evaluateSPARQLQuery {
         } else {
             System.out.println("No plan was found");
         }
+        t1 = System.currentTimeMillis();
+        System.out.println("evaluation: "+(t1-t0));
+        System.exit(0);
         //System.out.println("DPTable at the end: "+DPTable);
     }
 
     public static void evaluate(String queryStr) {
 
         String fedxConfig = "/home/roott/federatedOptimizer/lib/fedX3.1/config2";
+        String dataConfig = "/home/roott/fedBenchFederation.ttl";
         //System.out.println("evaluating "+queryStr);
         try {
-            FedXFactory.initializeFederation(fedxConfig, Collections.<Endpoint>emptyList());
+            Config.initialize(fedxConfig); 
+            List<Endpoint> ep = EndpointFactory.loadFederationMembers(new File(dataConfig));
+            FedXFactory.initializeFederation(ep);
 
             TupleQuery query = QueryManager.prepareTupleQuery(queryStr);
             TupleQueryResult res = query.evaluate();
@@ -550,7 +585,7 @@ class evaluateSPARQLQuery {
             //System.out.println("finished");
             FederationManager.getInstance().shutDown();
             System.out.println("results="+n);
-            System.exit(0);
+            //System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Error executing query");
@@ -1304,7 +1339,7 @@ class evaluateSPARQLQuery {
                 }
             }
             boolean added = false;
-            if (ts3.size() > 0 && ts5.size() > 0 && centerIsSubject(ts3) && centerIsSubject(ts5) && existsCPConnectionSubj(ts3, ts5) && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts5))) {
+            if (ts3.size() > 0 && ts5.size() > 0 && centerIsSubject(ts3) && centerIsSubject(ts5) && existsCPConnectionSubj(ts3, ts5)) { // && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts5))) {
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
                 Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderSubj(ts5, predicateIndexSubj);
                 if (p.size()>0 && q.size()>0) {
@@ -1312,7 +1347,7 @@ class evaluateSPARQLQuery {
                     added = added || tmpAdded;
                 }
             }
-            if (ts4.size() > 0 && ts6.size() > 0 && centerIsObject(ts4) && centerIsObject(ts6) && existsCPConnectionObj(ts4, ts6) && (existsNonGeneralPredicate(ts4) || existsNonGeneralPredicate(ts6))) {
+            if (ts4.size() > 0 && ts6.size() > 0 && centerIsObject(ts4) && centerIsObject(ts6) && existsCPConnectionObj(ts4, ts6)) { // && (existsNonGeneralPredicate(ts4) || existsNonGeneralPredicate(ts6))) {
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderObj(ts4, predicateIndexObj);
                 Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderObj(ts6, predicateIndexObj);
                 if (p.size()>0 && q.size()>0) {
@@ -1320,7 +1355,7 @@ class evaluateSPARQLQuery {
                     added = added || tmpAdded;
                 }
             }
-            if (ts3.size() > 0 && ts6.size() > 0 && centerIsSubject(ts3) && centerIsObject(ts6) && existsCPConnectionSubjObj(ts3, ts6) && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts6))) {
+            if (ts3.size() > 0 && ts6.size() > 0 && centerIsSubject(ts3) && centerIsObject(ts6) && existsCPConnectionSubjObj(ts3, ts6)) { // && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts6))) {
                 HashSet<Triple> aux = new HashSet<Triple>(ts6);
                 aux.removeAll(ts3); // Linking triples are in both characteristic sets, they should appear only in one
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
