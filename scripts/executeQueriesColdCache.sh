@@ -27,6 +27,7 @@ for query in ${l}; do
     #sleep 1s
     for j in `seq 1 ${n}`; do
         cd /home/roott/federatedOptimizer/lib/fedX3.1
+        rm cache.db
         /usr/bin/time -f "%e %P %t %M" timeout 1800s ./cli.sh -c config2 -d /home/roott/fedBenchFederation.ttl @q ${folder}/${query} > outputFile 2> timeFile
         #cat timeFile
         #cat outputFile

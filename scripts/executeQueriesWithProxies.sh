@@ -2,10 +2,10 @@
 
 folder=/home/roott/queries/fedBench
 sed -i "s,optimize=.*,optimize=true," /home/roott/federatedOptimizer/lib/fedX3.1/config2
-cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
+cp /home/roott/fedBenchFederationProxy.ttl /home/roott/fedBenchFederation.ttl
 s=`seq 1 11`
 l=""
-n=10
+n=1
 for i in ${s}; do
     l="${l} LD${i}"
 done
@@ -21,12 +21,13 @@ for i in ${s}; do
 done
 
 for query in ${l}; do
-    #cd /home/roott/federatedOptimizer/scripts
-    #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
-    #query=LD${i}
-    #sleep 1s
     for j in `seq 1 ${n}`; do
+        cd /home/roott/federatedOptimizer/scripts
+        tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
+        #query=LD${i}
+        sleep 1s
         cd /home/roott/federatedOptimizer/lib/fedX3.1
+        rm cache.db
         /usr/bin/time -f "%e %P %t %M" timeout 1800s ./cli.sh -c config2 -d /home/roott/fedBenchFederation.ttl @q ${folder}/${query} > outputFile 2> timeFile
         #cat timeFile
         #cat outputFile
@@ -36,11 +37,11 @@ for query in ${l}; do
         t=`echo ${y%%ms*}`
         x=`grep "results=" outputFile`
         nr=`echo ${x##*results=}`
-        #cd /home/roott/federatedOptimizer/scripts
-        #./killAll.sh /home/roott/tmp/proxyFederation
-        #sleep 10s
-        #pi=`./processProxyInfo.sh ${tmpFile} 0 8`
-        #echo "${query} ${t} ${pi} ${nr}"
-        echo "${query} ${t} ${nr}"
+        cd /home/roott/federatedOptimizer/scripts
+        ./killAll.sh /home/roott/tmp/proxyFederation
+        sleep 10s
+        pi=`./processProxyInfo.sh ${tmpFile} 0 8`
+        echo "${query} ${t} ${pi} ${nr}"
+        #echo "${query} ${t} ${nr}"
     done
 done

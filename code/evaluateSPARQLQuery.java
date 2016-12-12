@@ -41,12 +41,12 @@ class evaluateSPARQLQuery {
     static Vector<HashMap<Integer, Set<String>>> additionalSetsObj = new Vector<HashMap<Integer, Set<String>>>();
     static Vector<HashMap<Integer, Integer>> costsSubj = new Vector<HashMap<Integer, Integer>>();
     static Vector<HashMap<Integer, Integer>> costsObj = new Vector<HashMap<Integer, Integer>>();
-    static Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>> cpsSubj = new Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>>();
-    static Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>> cpsObj = new Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>>();
-    static Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>> cpsSubjObj = new Vector<HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>>();
+    static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsSubj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
+    static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsObj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
+    static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsSubjObj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
     static Vector<String> datasets = new Vector<String>();
     static Vector<String> endpoints = new Vector<String>();
-    static Vector<String> generalPredicates = new Vector<String>();
+    static HashSet<String> generalPredicates = new HashSet<String>();
     static String folder;
     static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexesSubj = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
     static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexesObj = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
@@ -131,11 +131,11 @@ class evaluateSPARQLQuery {
     }
 
 // HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPos
-    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> getCPSSubj(Integer ds1, Integer ds2) {
+    public static HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> getCPSSubj(Integer ds1, Integer ds2) {
         boolean loaded = false;
         HashMap<Integer, Integer> ds2Pos = datasetsIdsPosSubj.get(ds1);
         Integer pos = -1;
-        HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> c =null;
+        HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> c =null;
         if (ds2Pos != null) {
             pos = ds2Pos.get(ds2);
             if (pos != null) {
@@ -163,11 +163,11 @@ class evaluateSPARQLQuery {
         return c;
     }
 
-    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> getCPSSubjObj(Integer ds1, Integer ds2) {
+    public static HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> getCPSSubjObj(Integer ds1, Integer ds2) {
         boolean loaded = false;
         HashMap<Integer, Integer> ds2Pos = datasetsIdsPosSubjObj.get(ds1);
         Integer pos = -1;
-        HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> c =null;
+        HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> c =null;
         if (ds2Pos != null) {
             pos = ds2Pos.get(ds2);
             if (pos != null) {
@@ -195,11 +195,11 @@ class evaluateSPARQLQuery {
         return c;
     }
 
-    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> getCPSObj(Integer ds1, Integer ds2) {
+    public static HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> getCPSObj(Integer ds1, Integer ds2) {
         boolean loaded = false;
         HashMap<Integer, Integer> ds2Pos = datasetsIdsPosObj.get(ds1);
         Integer pos = -1;
-        HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> c =null;
+        HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> c =null;
         if (ds2Pos != null) {
             pos = ds2Pos.get(ds2);
             if (pos != null) {
@@ -321,6 +321,19 @@ class evaluateSPARQLQuery {
         return readPredicateIndexes(folder, datasets, "_obj");
     }
 
+    public static void loadStatistics() {
+
+        for (int ds1 = 0; ds1 < datasets.size(); ds1++) {
+            loadFilesSubj(ds1);
+            loadFilesObj(ds1);
+            for (int ds2 = 0; ds2 < datasets.size(); ds2++) {
+                HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> aux = getCPSSubjObj(ds1, ds2);
+                aux = getCPSSubj(ds1, ds2);
+                aux = getCPSObj(ds1, ds2);
+            }
+        }
+    }
+
     public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexes(String folder, Vector<String> datasets, String suffix) {
 
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predIndex = new HashMap<String, HashMap<Integer,HashSet<Integer>>>();
@@ -352,8 +365,8 @@ class evaluateSPARQLQuery {
         return predIndex;
     }
 
-    public static Vector<String> readPredicates(String file) {
-        Vector<String> ps = new Vector<String>();
+    public static HashSet<String> readPredicates(String file) {
+        HashSet<String> ps = new HashSet<String>();
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String l = br.readLine();
@@ -390,7 +403,7 @@ class evaluateSPARQLQuery {
         return ps;
     }
 
-    private static ArrayList<HashSet<Triple>> getBGPs(Query query) {
+    protected static ArrayList<HashSet<Triple>> getBGPs(Query query) {
 
         ArrayList<HashSet<Triple>> bgps = null;
         try {
@@ -405,10 +418,26 @@ class evaluateSPARQLQuery {
         return bgps;
     }
 
-    public static void main(String[] args) {
+    public static void prepareFedX() {
+        String fedxConfig = "/home/roott/federatedOptimizer/lib/fedX3.1/config2";
+        String dataConfig = "/home/roott/fedBenchFederation.ttl";
+        //System.out.println("evaluating "+queryStr);
+        try {
+            Config.initialize(fedxConfig);
+            List<Endpoint> ep = EndpointFactory.loadFederationMembers(new File(dataConfig));
+            FedXFactory.initializeFederation(ep);
+            //Config.getConfig().set("optimize", ""+optimize);
+        } catch (Exception e) {
+            
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
         //BasicConfigurator.configure();
         long t0 = System.currentTimeMillis();
         String queryFile = args[0];
+        int pos = queryFile.lastIndexOf("/");
+        String queryId = queryFile.substring(pos>=0?(pos+1):0);
         String datasetsFile = args[1];
         folder = args[2];
         long budget = Long.parseLong(args[3]);
@@ -416,7 +445,8 @@ class evaluateSPARQLQuery {
         original = Boolean.parseBoolean(args[5]);
         String fileName = args[6];
         String generalPredicatesFile = args[7];
-        //generalPredicates = readPredicates(generalPredicatesFile);
+        prepareFedX();
+        generalPredicates = readPredicates(generalPredicatesFile);
         datasets = readDatasets(datasetsFile);
         globalStats = new HashMap<Integer, Vector<Integer>>();
         // Predicate --> DatasetId --> (numTriples, (numDistSubj, numDistObj))
@@ -426,7 +456,7 @@ class evaluateSPARQLQuery {
         produceJoinOrderingVOID.folder = folder;
         produceJoinOrderingVOID.datasets = datasets;
         produceJoinOrderingVOID.loadStatistics(globalStats, propertyStats, classStats);
-
+        loadStatistics();
         // Predicate --> DatasetId --> set of CSId
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj = readPredicateIndexesSubj(folder, datasets); 
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj = readPredicateIndexesObj(folder, datasets); 
@@ -457,11 +487,11 @@ class evaluateSPARQLQuery {
                 break;
             }
             HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
-            t0 = System.currentTimeMillis();
+            //t0 = System.currentTimeMillis();
             Vector<HashSet<Triple>> stars = getStars(triples, budget, predicateIndexSubj, predicateIndexObj); //css, predicateIndex, cost);
-            t1 = System.currentTimeMillis();
-            System.out.println("getStars: "+(t1-t0));
-            t0 = System.currentTimeMillis();
+            //t1 = System.currentTimeMillis();
+            //System.out.println("getStars: "+(t1-t0));
+            //t0 = System.currentTimeMillis();
             //System.out.println("stars: "+stars);
             int i = 1;
             //HashSet<Triple> triples = new HashSet<Triple>();
@@ -512,79 +542,89 @@ class evaluateSPARQLQuery {
                     DPTable.put(ns, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(cost,cost))); //0L))); 
                 }
             }
-            t1 = System.currentTimeMillis();
-            System.out.println("stars have been added to DPTable: "+(t1-t0));
-            t0 = System.currentTimeMillis();
+            //t1 = System.currentTimeMillis();
+            //System.out.println("stars have been added to DPTable: "+(t1-t0));
+            //t0 = System.currentTimeMillis();
             //System.out.println("map: "+map);
             //System.out.println("DPTable before add.. :"+DPTable);
             addRemainingTriples(DPTable, triples, predicateIndexSubj, predicateIndexObj, nodes, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
-            t1 = System.currentTimeMillis();
-            System.out.println("addRemainingTriples: "+(t1-t0));
-            t0 = System.currentTimeMillis();
+            //t1 = System.currentTimeMillis();
+            //System.out.println("addRemainingTriples: "+(t1-t0));
+            //t0 = System.currentTimeMillis();
             //System.out.println("DPTable after add.. :"+DPTable);
             // may have to consider already intermediate results in the CP estimation for the cost
             HashMap<HashSet<Node>, Double> selectivity = new HashMap<HashSet<Node>, Double>();
             //HashMap<HashSet<Node>, Vector<Tree<Pair<Integer,Triple>>>> selectivity = new HashMap<HashSet<Node>, Double>();
             estimateSelectivityCP(DPTable, predicateIndexSubj, predicateIndexObj, nodes, triples, map, selectivity); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
-            t1 = System.currentTimeMillis();
-            System.out.println("estimateSelectivity: "+(t1-t0));
-            t0 = System.currentTimeMillis();
+            //t1 = System.currentTimeMillis();
+            //System.out.println("estimateSelectivity: "+(t1-t0));
+            //t0 = System.currentTimeMillis();
             //System.out.println("DPTable after CP estimation.. :"+DPTable);
             //LOG System.out.println("selectivity :"+selectivity);
             //System.out.println("nodes :"+nodes);
             computeJoinOrderingDP(DPTable, nodes, selectivity);
-            t1 = System.currentTimeMillis();
-            System.out.println("computeJoinOrdering: "+(t1-t0));
+            //t1 = System.currentTimeMillis();
+            //System.out.println("computeJoinOrdering: "+(t1-t0));
             //t0 = System.currentTimeMillis();
             Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>> res = DPTable.get(nodes);
             if (res != null) {
                 plans.put(ts, res.getFirst());
-            System.out.println("Cardinality: "+res.getSecond().getFirst());
-            System.out.println("Cost: "+res.getSecond().getSecond());
+                //System.out.println("Cardinality: "+res.getSecond().getFirst());
+                //System.out.println("Cost: "+res.getSecond().getSecond());
                 //System.out.println(res.getFirst());
             }
+            //System.out.println("DPTable at the end: "+DPTable);
         }
-        t1 = System.currentTimeMillis();
-        System.out.println("processing: "+(t1-t2));
-        t0 = System.currentTimeMillis();
+        t2 = System.currentTimeMillis() - t2;
+        //System.out.println("processing: "+(t1-t2));
+        //t0 = System.currentTimeMillis();
         Query newQuery = produceQueryWithServiceClauses(query, plans);
-        t1 = System.currentTimeMillis();
-        System.out.println("rewriting: "+(t1-t0));
-        t0 = System.currentTimeMillis();
+        //t1 = System.currentTimeMillis();
+        //System.out.println("rewriting: "+(t1-t0));
+        //t0 = System.currentTimeMillis();
         if (newQuery != null) {
             //System.out.println("Plan: "+newQuery);
             //write(newQuery.toString(), fileName);
-            evaluate(newQuery.toString());
+            //System.out.println("Done query " + queryId + ": planning="+t2+"ms");
+            evaluate(newQuery.toString(), queryId, false, t2);
         } else {
-            System.out.println("No plan was found");
+            //System.out.println("Plan not found");
+            evaluate(query.toString(), queryId, true, t2);
         }
-        t1 = System.currentTimeMillis();
-        System.out.println("evaluation: "+(t1-t0));
+        FederationManager.getInstance().shutDown();
+        //t1 = System.currentTimeMillis();
+        //System.out.println("evaluation: "+(t1-t0));
+        //System.out.println("DPTable at the end: "+DPTable);
         System.exit(0);
         //System.out.println("DPTable at the end: "+DPTable);
     }
 
-    public static void evaluate(String queryStr) {
+    public static void evaluate(String queryStr, String queryId, boolean optimize, long t) {
 
-        String fedxConfig = "/home/roott/federatedOptimizer/lib/fedX3.1/config2";
-        String dataConfig = "/home/roott/fedBenchFederation.ttl";
+        //String fedxConfig = "/home/roott/federatedOptimizer/lib/fedX3.1/config2";
+        //String dataConfig = "/home/roott/fedBenchFederation.ttl";
         //System.out.println("evaluating "+queryStr);
         try {
-            Config.initialize(fedxConfig); 
-            List<Endpoint> ep = EndpointFactory.loadFederationMembers(new File(dataConfig));
-            FedXFactory.initializeFederation(ep);
-
+            //Config.initialize(fedxConfig); 
+            //List<Endpoint> ep = EndpointFactory.loadFederationMembers(new File(dataConfig));
+            //FedXFactory.initializeFederation(ep);
+            Config.getConfig().set("optimize", ""+optimize);
             TupleQuery query = QueryManager.prepareTupleQuery(queryStr);
+            long start = System.currentTimeMillis();
             TupleQueryResult res = query.evaluate();
             int n=0;
             while (res.hasNext()) {
-                BindingSet bs = res.next();
-	        //System.out.println(bs);
+                //BindingSet bs = res.next();
+	        System.out.println(res.next());
                 n++;
             }
+            long duration = System.currentTimeMillis() - start; 
+
+            System.out.println("Done query " + queryId + ": planning="+t+"ms, duration=" + duration + "ms, results=" + n);
+
             //System.out.println("finished");
-            FederationManager.getInstance().shutDown();
-            System.out.println("results="+n);
+            //FederationManager.getInstance().shutDown();
+            //System.out.println("results="+n);
             //System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
@@ -1195,6 +1235,58 @@ class evaluateSPARQLQuery {
         return existsCSConnectionObj(sq1) && existsCSConnectionObj(sq2) && (existsCPConnectionAuxO(sq1, sq2) || existsCPConnectionAuxO(sq2, sq1));
     }
 
+    public static Set<String> getCPConnectionSubj(Set<Triple> sq1, Set<Triple> sq2) {
+
+        Set<String> set = new HashSet<String>();
+        if (sq1.size() == 0 || sq2.size() == 0) 
+            return set;
+        Node c = sq2.iterator().next().getSubject();
+        for (Triple t : sq1) {
+            Node oTmp = t.getObject();
+            if (oTmp.equals(c)) {
+                set.add("<"+t.getPredicate().getURI()+">");
+            } 
+        }
+        return set;
+    }
+
+    public static Set<String> getCPConnectionSubjObj(Set<Triple> sq1, Set<Triple> sq2) {
+
+        Set<String> set = new HashSet<String>();
+        if (sq1.size() == 0 || sq2.size() == 0)
+            return set;
+        Node c = sq2.iterator().next().getObject();
+        for (Triple t : sq1) {
+            Node oTmp = t.getObject();
+            if (oTmp.equals(c)) {
+                set.add("<"+t.getPredicate().getURI()+">");
+            }
+        }
+        c = sq1.iterator().next().getSubject();
+        for (Triple t : sq2) {
+            Node sTmp = t.getSubject();
+            if (sTmp.equals(c)) {
+                set.add("<"+t.getPredicate().getURI()+">");
+            }
+        }
+        return set;
+    }
+
+    public static Set<String> getCPConnectionObj(Set<Triple> sq1, Set<Triple> sq2) {
+
+        Set<String> set = new HashSet<String>();
+        if (sq1.size() == 0 || sq2.size() == 0)
+            return set;
+        Node c = sq2.iterator().next().getObject();
+        for (Triple t : sq1) {
+            Node sTmp = t.getSubject();
+            if (sTmp.equals(c)) {
+                set.add("<"+t.getPredicate().getURI()+">");
+            }
+        }
+        return set;
+    } 
+
     public static boolean existsCPConnectionAuxS(Set<Triple> sq1, Set<Triple> sq2) {
 
         boolean e = false;
@@ -1230,22 +1322,24 @@ class evaluateSPARQLQuery {
 
     public static boolean existsCSConnectionSubj(Set<Triple> sq) {
         boolean e = true;
-        Node s = null;
-        for (Triple t : sq) {
+        Iterator<Triple> it = sq.iterator(); 
+        Node s = it.next().getSubject();
+        while (it.hasNext()) {
+            Triple t = it.next();
             Node sTmp = t.getSubject();
-            e = e && ((s == null) || s.equals(sTmp));
-            s = sTmp;
+            e = e && (s.equals(sTmp));
         }
         return e;
     }
 
     public static boolean existsCSConnectionObj(Set<Triple> sq) {
         boolean e = true;
-        Node o = null;
-        for (Triple t : sq) {
+        Iterator<Triple> it = sq.iterator();
+        Node o = it.next().getObject();
+        while (it.hasNext()) {
+            Triple t = it.next();
             Node oTmp = t.getObject();
-            e = e && ((o == null) || o.equals(oTmp));
-            o = oTmp;
+            e = e && (o.equals(oTmp));
         }
         return e;
     }
@@ -1286,9 +1380,11 @@ class evaluateSPARQLQuery {
     }
 
     public static void estimateSelectivityCP(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, HashSet<Triple> triples, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<HashSet<Node>, Double> selectivity) {
-
+        //long t0 = System.currentTimeMillis();
         HashMap<Triple, Triple> renamed = new HashMap<Triple, Triple>();
         HashSet<Triple> newTs = renameBack(new HashSet<Triple>(triples), map, renamed);
+        //t0 = System.currentTimeMillis() - t0;
+        //System.out.println("renaming: "+t0);
         Vector<HashSet<Node>> toRemove = new Vector<HashSet<Node>>();
         for (Triple t : triples) {
             Node s = t.getSubject();
@@ -1307,55 +1403,309 @@ class evaluateSPARQLQuery {
             if (valueO.size()>0) {
                 ts2.addAll(obtainTriples(valueO.get(0)));
             }
+            Triple r = renamed.get(t);
+            Triple t1 = null;
+            if (ts1.size()>0) {
+                t1 = ts1.iterator().next();
+            }
+            Triple t2 = null;
+            if (ts2.size()>0) {
+                t2 = ts2.iterator().next();
+            }
+            boolean cS1 = (ts1.size() == 0) || centerIsSubject(ts1);
+            boolean cO1 = (ts1.size() == 0) || centerIsObject(ts1);
+            boolean cS2 = (ts2.size() == 0) || centerIsSubject(ts2);
+            boolean cO2 = (ts2.size() == 0) || centerIsObject(ts2);
+            boolean case1 = ((ts1.size()==0)||(r.getSubject().equals(t1.getSubject()) && cS1))
+                         && ((ts2.size()==0)||(r.getObject().equals(t2.getSubject()) && cS2));
+            boolean case2 = ((ts1.size()==0)||(r.getObject().equals(t1.getSubject()) && cS1))
+                         && ((ts2.size()==0)||(r.getSubject().equals(t2.getSubject()) && cS2));
+            boolean case3 = ((ts1.size()==0)||(r.getObject().equals(t1.getObject()) && cO1))
+                         && ((ts2.size()==0)||(r.getSubject().equals(t2.getObject()) && cO2));
+            boolean case4 = ((ts1.size()==0)||(r.getSubject().equals(t1.getObject()) && cO1))
+                         && ((ts2.size()==0)||(r.getObject().equals(t2.getObject()) && cO2));
+            boolean case5 = ((ts1.size()==0)||(r.getSubject().equals(t1.getSubject()) && cS1))
+                         && ((ts2.size()==0)||(r.getObject().equals(t2.getObject()) && cO2));
+            //System.out.println("case1: "+case1+". case2: "+case2+". case3: "+case3+". case4: "+case4+". case5: "+case5);
             Set<Triple> ts3 = new HashSet<Triple>();
             Set<Triple> ts4 = new HashSet<Triple>();
             Set<Triple> ts5 = new HashSet<Triple>();
             Set<Triple> ts6 = new HashSet<Triple>();
-            if (ts1.size()>0 && centerIsSubject(ts1)) {
+            //boolean hasTs3 = false;
+            //boolean hasTs4 = false;
+            //boolean hasTs5 = false;
+            //boolean hasTs6 = false;
+            if (ts1.size()>0 && cS1) {
                 ts3.addAll(ts1);
+                //hasTs3 = true;
             }
-            if (ts1.size()>0 && centerIsObject(ts1)) {
+            if (ts1.size()>0 && cO1) {
                 ts4.addAll(ts1);
+                //hasTs4 = true;
             }
-            if (ts2.size()>0 && centerIsSubject(ts2)) {
+            if (ts2.size()>0 && cS2) {
                 ts5.addAll(ts2);
+                //hasTs5 = true;
             }
-            if (ts2.size()>0 && centerIsObject(ts2)) {
+            if (ts2.size()>0 && cO2) {
                 ts6.addAll(ts2);
+                //hasTs6 = true;
             }
-            for (Triple t1 : triples) { // t1 has meta-nodes
-                Triple t2 = renamed.get(t1); // t2 is t1 without the meta-nodes
-                if (t1.getSubject().equals(s)) {
-                    ts3.add(t2);
+            for (Triple ta : triples) { // t1 has meta-nodes
+                Triple tb = renamed.get(ta); // t2 is t1 without the meta-nodes
+                if (ta.getSubject().equals(s)) {
+                    ts3.add(tb);
                 }
-                if (t1.getObject().equals(s)) {
-                    ts4.add(t2);
+                if (ta.getObject().equals(s)) {
+                    ts4.add(tb);
                 }
-                if (t1.getSubject().equals(o)) {
-                    ts5.add(t2);
+                if (ta.getSubject().equals(o)) {
+                    ts5.add(tb);
                 }
-                if (t1.getObject().equals(o)) {
-                    ts6.add(t2);
+                if (ta.getObject().equals(o)) {
+                    ts6.add(tb);
                 }
             }
             boolean added = false;
-            if (ts3.size() > 0 && ts5.size() > 0 && centerIsSubject(ts3) && centerIsSubject(ts5) && existsCPConnectionSubj(ts3, ts5)) { // && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts5))) {
+            //boolean addedTs3 = false;
+            //boolean addedTs4 = false;
+            //boolean addedTs5 = false;
+            //boolean addedTs6 = false;
+            //t0 = System.currentTimeMillis();
+            Set<String> ps35 = null;
+            Set<String> ps53 = null;
+            if (ts3.size() > 0 && ts5.size()> 0) {
+                
+                ps35 = getCPConnectionSubj(ts3, ts5);
+                ps53 = getCPConnectionSubj(ts5, ts3);
+            }
+            boolean eNGPTs3 = existsNonGeneralPredicate(ts3);
+            boolean eNGPTs5 = existsNonGeneralPredicate(ts5);
+            HashMap<String,Set<Triple>> ps3 = obtainPredicates(ts3);
+            HashMap<String,Set<Triple>> ps5 = obtainPredicates(ts5); 
+            HashMap<Integer,HashSet<Integer>> relevantCSTs3 = computeRelevantCS(ps3.keySet(), predicateIndexSubj);
+            HashMap<Integer,HashSet<Integer>> relevantCSTs5 = computeRelevantCS(ps5.keySet(), predicateIndexSubj);
+
+            Set<String> ps46 = null;
+            Set<String> ps64 = null;
+            if (ts4.size() > 0 && ts6.size()> 0) {
+                ps46 = getCPConnectionObj(ts4, ts6);
+                ps64 = getCPConnectionObj(ts6, ts4);
+            }
+
+            Set<String> ps36 = null;
+            Set<String> ps63 = null;
+            if (ts3.size() > 0 && ts6.size()> 0) {
+                ps36 = getCPConnectionSubjObj(ts3, ts6);
+                ps63 = getCPConnectionSubjObj(ts6, ts3);
+            }
+
+            boolean eNGPTs4 = existsNonGeneralPredicate(ts4);
+            boolean eNGPTs6 = existsNonGeneralPredicate(ts6);
+            HashMap<String,Set<Triple>> ps4 = obtainPredicates(ts4);
+            HashMap<String,Set<Triple>> ps6 = obtainPredicates(ts6);
+            HashMap<Integer,HashSet<Integer>> relevantCSTs4 = computeRelevantCS(ps4.keySet(), predicateIndexObj);
+            HashMap<Integer,HashSet<Integer>> relevantCSTs6 = computeRelevantCS(ps6.keySet(), predicateIndexObj);
+ 
+            if (ts3.size() > 0 && ts5.size() > 0 && case1 && ps35.size()>0 && (eNGPTs3 || eNGPTs5)) {
+                HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful = new HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>>();
+                //HashMap<Integer,HashSet<Integer>> usefulTs3 = new HashMap<Integer,HashSet<Integer>>();
+                //HashMap<Integer,HashSet<Integer>> usefulTs5 = new HashMap<Integer,HashSet<Integer>>();
+                //System.out.println("there are "+ relevantCSTs3.keySet().size()+" relevant datasets for ts3");
+                //System.out.println("there are "+ relevantCSTs5.keySet().size()+" relevant datasets for ts5");
+                long card35 = getCardinalityCPSubj(ts3, ps3, ps35, ts5, ps5, relevantCSTs3, relevantCSTs5, useful);
+                HashSet<Node> set = new HashSet<Node>(keyS);
+                set.addAll(keyO);
+                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+                long c = Long.MAX_VALUE;
+                if (data != null) {
+                    c = data.getSecond().getFirst();
+                }
+                //System.out.println("card35: "+card35);
+                if (card35>0 && card35 < c) {
+                    Vector<Tree<Pair<Integer,Triple>>> plan = makeCPTreeSubj(ps3, ps5, useful, predicateIndexSubj);
+                    //System.out.println("card35: "+card35);
+                    //System.out.println(plan);
+                    DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(plan, new Pair<Long, Long>(card35,card35)));  
+                //Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
+                //Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderSubj(ts5, predicateIndexSubj);
+                //if (p.size()>0 && q.size()>0) {
+                    //boolean tmpAdded = addCheapestCPSubj(p, q, keyS, keyO, predicateIndexSubj, DPTable);
+                   // added = added || tmpAdded;
+                    added = true;
+                    //addedTs5 = true;
+                }
+            }
+            if (ts3.size() > 0 && ts5.size() > 0 && case2 && ps53.size()>0 && (eNGPTs3 || eNGPTs5)) {
+                HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful = new HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>>();
+                //HashMap<Integer,HashSet<Integer>> usefulTs3 = new HashMap<Integer,HashSet<Integer>>();
+                //HashMap<Integer,HashSet<Integer>> usefulTs5 = new HashMap<Integer,HashSet<Integer>>();
+                long card53 = getCardinalityCPSubj(ts5, ps5, ps53, ts3, ps3, relevantCSTs5, relevantCSTs3, useful);
+                HashSet<Node> set = new HashSet<Node>(keyS);
+                set.addAll(keyO);
+                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+                long c = Long.MAX_VALUE;
+                if (data != null) {
+                    c = data.getSecond().getFirst();
+                }
+                if (card53>0 && card53 < c) {
+                    Vector<Tree<Pair<Integer,Triple>>> plan = makeCPTreeSubj(ps5, ps3, useful, predicateIndexSubj);
+                    //System.out.println("card53: "+card53+". plan: "+plan);
+                    DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(plan, new Pair<Long, Long>(card53,card53)));
+                //Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
+                //Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderSubj(ts5, predicateIndexSubj);
+                //if (p.size()>0 && q.size()>0) {
+                    //boolean tmpAdded = addCheapestCPSubj(p, q, keyS, keyO, predicateIndexSubj, DPTable);
+                   // added = added || tmpAdded;
+                    //addedTs3 = true;
+                    added = true;
+                }
+            }
+            if (ts4.size() > 0 && ts6.size() > 0 && case3 && ps46.size()>0 && (eNGPTs4 || eNGPTs6)) {
+                HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful = new HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>>();
+                long card46 = getCardinalityCPObj(ts4, ps4, ps46, ts6, ps6, relevantCSTs4, relevantCSTs6, useful);
+                HashSet<Node> set = new HashSet<Node>(keyS);
+                set.addAll(keyO);
+                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+                long c = Long.MAX_VALUE;
+                if (data != null) {
+                    c = data.getSecond().getFirst();
+                }
+                if (card46>0 && card46 < c) {
+                    Vector<Tree<Pair<Integer,Triple>>> plan = makeCPTreeObj(ps4, ps6, useful, predicateIndexObj);
+                    //System.out.println("card46: "+card46);
+                    //System.out.println(plan);
+                    DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(plan, new Pair<Long, Long>(card46,card46)));
+                    //addedTs4 = true;
+                    added = true;
+                }
+            }
+            if (ts4.size() > 0 && ts6.size() > 0  && case4 && ps64.size()>0 && (eNGPTs4 || eNGPTs6)) {
+                HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful = new HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>>();
+                long card64 = getCardinalityCPObj(ts6, ps6, ps64, ts4, ps4, relevantCSTs6, relevantCSTs4, useful);
+                HashSet<Node> set = new HashSet<Node>(keyS);
+                set.addAll(keyO);
+                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+                long c = Long.MAX_VALUE;
+                if (data != null) {
+                    c = data.getSecond().getFirst();
+                }
+                if (card64>0 && card64 < c) {
+                    Vector<Tree<Pair<Integer,Triple>>> plan = makeCPTreeObj(ps6, ps4, useful, predicateIndexObj);
+                    //System.out.println("card64: "+card64);
+                    //System.out.println(plan);
+                    DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(plan, new Pair<Long, Long>(card64,card64)));
+                    //addedTs4 = true;
+                    added = true;
+                }
+            }
+
+            if (ts3.size() > 0 && ts6.size() > 0 && case5 && ps36.size()>0 && (eNGPTs3 || eNGPTs6)) {
+                //System.out.println("inside case 5");
+                //System.out.println(ts3);
+                //System.out.println(ts6);
+                //System.out.println(ps36);
+                HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful = new HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>>();
+                //long card36 = getCardinalityCPSubjObj(ts3, ps3, ps36, ts6, ps6, relevantCSTs3, relevantCSTs6, useful);
+                //if (card36 == 0) {
+                long card36 = 0L;
+                    Set<Triple> aux = new HashSet(ts6);
+                    ts6.removeAll(ts3);
+                    HashMap<String,Set<Triple>> ps6Aux = new HashMap<String,Set<Triple>>();
+                    for (String k : ps6.keySet()) {
+                        ps6Aux.put(k, new HashSet<Triple>(ps6.get(k)));
+                    }
+                    ps6 = obtainPredicates(ts6);
+                    HashMap<Integer,HashSet<Integer>> relevantCSTs6Aux = new HashMap<Integer,HashSet<Integer>>();
+                    for (Integer k :  relevantCSTs6.keySet()) {
+                        relevantCSTs6Aux.put(k, new HashSet<Integer>(relevantCSTs6.get(k)));
+                    }
+                    relevantCSTs6 = computeRelevantCS(ps6.keySet(), predicateIndexObj);
+                    //System.out.println("ts6 after removing ts3 triples: "+ts6);
+                    if (ts6.size() > 0) {
+                      card36 = getCardinalityCPSubjObj(ts3, ps3, ps36, ts6, ps6, relevantCSTs3, relevantCSTs6, useful);
+                    }
+                    if (card36 == 0) {
+                        ts6 = aux;
+                        relevantCSTs6 = relevantCSTs6Aux;
+                        ps6 = ps6Aux;
+                        ts3.removeAll(ts6);
+                        ps3 = obtainPredicates(ts3);
+                        relevantCSTs3 = computeRelevantCS(ps3.keySet(), predicateIndexSubj);
+                        //System.out.println("ts3 after removing ts6 triples: "+ts3);
+                        if (ts3.size()>0) {
+                            card36 = getCardinalityCPSubjObj(ts3, ps3, ps36, ts6, ps6, relevantCSTs3, relevantCSTs6, useful);                      
+                        }
+                    }
+                //}
+                HashSet<Node> set = new HashSet<Node>(keyS);
+                set.addAll(keyO);
+                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+                long c = Long.MAX_VALUE;
+                if (data != null) {
+                    c = data.getSecond().getFirst();
+                }
+                if (card36>0 && card36 < c) {
+                    Vector<Tree<Pair<Integer,Triple>>> plan = makeCPTreeSubjObj(ps3, ps6, useful, predicateIndexSubj, predicateIndexObj);
+                    //System.out.println("card36: "+card36);
+                    //System.out.println(plan);
+                    DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(plan, new Pair<Long, Long>(card36,card36)));
+                    //addedTs3 = true;
+                    added = true;
+                }
+            }
+/*
+            if (ts3.size() > 0 && ts6.size() > 0 && ps63.size()>0 && (eNGPTs3 || eNGPTs6)) {
+                HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful = new HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>>();
+                long card63 = getCardinalityCPSubjObj(ts6, ps6, ps63, ts3, ps3, relevantCSTs6, relevantCSTs3, useful);
+                HashSet<Node> set = new HashSet<Node>(keyS);
+                set.addAll(keyO);
+                Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>> data = DPTable.get(set);
+                long c = Long.MAX_VALUE;
+                if (data != null) {
+                    c = data.getSecond().getFirst();
+                }
+                if (card63>0 && card63 < c) {
+                    Vector<Tree<Pair<Integer,Triple>>> plan = makeCPTreeSubjObj(ps6, ps3, useful, predicateIndexSubj, predicateIndexObj);
+                    DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(plan, new Pair<Long, Long>(card63,card63)));
+                    added = true;
+                }
+            }*/
+            //t0 = System.currentTimeMillis()-t0;
+            //System.out.println("addCheapestCPSubj: "+t0);*/
+            //t0 = System.currentTimeMillis();
+            /*if (ts3.size() > 0 && ts5.size() > 0 && centerIsSubject(ts3) && centerIsSubject(ts5) && existsCPConnectionSubj(ts3, ts5) && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts5))) {
+                //t0 = System.currentTimeMillis();
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
+                //t0 = System.currentTimeMillis()-t0;
+                //System.out.println("first star: "+ts3+" : "+t0);
+                //t0 = System.currentTimeMillis();
                 Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderSubj(ts5, predicateIndexSubj);
+                //t0 = System.currentTimeMillis()-t0;
+                //System.out.println("second star: "+ts5+" : "+t0);
+                //t0 = System.currentTimeMillis();
                 if (p.size()>0 && q.size()>0) {
                     boolean tmpAdded = addCheapestCPSubj(p, q, keyS, keyO, predicateIndexSubj, DPTable);
                     added = added || tmpAdded;
                 }
-            }
-            if (ts4.size() > 0 && ts6.size() > 0 && centerIsObject(ts4) && centerIsObject(ts6) && existsCPConnectionObj(ts4, ts6)) { // && (existsNonGeneralPredicate(ts4) || existsNonGeneralPredicate(ts6))) {
+                //t0 = System.currentTimeMillis()-t0;
+                //System.out.println("cp: "+t0);
+            }*/
+            //t0 = System.currentTimeMillis()-t0;
+            //System.out.println("addCheapestCPSubj: "+t0);
+            //t0 = System.currentTimeMillis();
+            /*if (ts4.size() > 0 && ts6.size() > 0 && centerIsObject(ts4) && centerIsObject(ts6) && existsCPConnectionObj(ts4, ts6) && (existsNonGeneralPredicate(ts4) || existsNonGeneralPredicate(ts6))) {
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderObj(ts4, predicateIndexObj);
                 Vector<Tree<Pair<Integer,Triple>>> q = getStarJoinOrderObj(ts6, predicateIndexObj);
                 if (p.size()>0 && q.size()>0) {
                     boolean tmpAdded = addCheapestCPObj(p, q, keyS, keyO, predicateIndexObj, DPTable);
                     added = added || tmpAdded;
                 }
-            }
-            if (ts3.size() > 0 && ts6.size() > 0 && centerIsSubject(ts3) && centerIsObject(ts6) && existsCPConnectionSubjObj(ts3, ts6)) { // && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts6))) {
+            }*/
+            //t0 = System.currentTimeMillis()-t0;
+            //System.out.println("addCheapestCPObj: "+t0);
+            //t0 = System.currentTimeMillis();
+            /*if (ts3.size() > 0 && ts6.size() > 0 && centerIsSubject(ts3) && centerIsObject(ts6) && existsCPConnectionSubjObj(ts3, ts6) && (existsNonGeneralPredicate(ts3) || existsNonGeneralPredicate(ts6))) {
                 HashSet<Triple> aux = new HashSet<Triple>(ts6);
                 aux.removeAll(ts3); // Linking triples are in both characteristic sets, they should appear only in one
                 Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderSubj(ts3, predicateIndexSubj);
@@ -1367,7 +1717,15 @@ class evaluateSPARQLQuery {
                     boolean tmpAdded = addCheapestCPSubjObj(p, q, keyS, keyO, predicateIndexSubj, predicateIndexObj, DPTable);
                     added = added || tmpAdded;
                 }
-            }
+            }*/
+            //t0 = System.currentTimeMillis()-t0;
+            //System.out.println("addCheapestCPSubjObj: "+t0);
+            /*if ((addedTs3 || addedTs4) && (addedTs5 || addedTs6) && (!hasTs3 || addedTs3) && (!hasTs4 || addedTs4) && (!hasTs5 || addedTs5) && (!hasTs6 || addedTs6)) {
+                toRemove.add(keyS);
+                toRemove.add(keyO);
+                addSelectivity(keyS, keyO, DPTable, selectivity);
+            }*/
+
             if (added) {
                 toRemove.add(keyS);
                 toRemove.add(keyO);
@@ -1377,6 +1735,471 @@ class evaluateSPARQLQuery {
         for (HashSet<Node> s : toRemove) {
             DPTable.remove(s);
         }
+    }
+
+    public static long getCardinalityCPSubj(Set<Triple> sq1, HashMap<String, Set<Triple>> map1, Set<String> ps12, Set<Triple> sq2, HashMap<String, Set<Triple>> map2, HashMap<Integer,HashSet<Integer>> relevantCSTs1, HashMap<Integer,HashSet<Integer>> relevantCSTs2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful) {
+
+        //double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
+        Set<String> ps1 = map1.keySet();
+        Set<String> ps2 = map2.keySet();
+
+        long c = 0L;
+        for (Integer ds1 : relevantCSTs1.keySet()) {
+            Set<Integer> css1 = relevantCSTs1.get(ds1);
+            for (Integer ds2 : relevantCSTs2.keySet()) {
+                double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
+                long card = 0L;
+                for (String p : ps12) {
+                    //System.out.println("p: "+p);
+                    HashMap<Integer, HashMap<Integer, Integer>> cs1cs2Count = getCPSSubj(ds1, ds2).get(p);
+                    if (cs1cs2Count == null) {
+                        //System.out.println("no information for p in cps");
+                        continue;
+                    }
+                    Set<Integer> css2 = relevantCSTs2.get(ds2);
+                    for (Integer cs1 : css1) {
+                        HashMap<Integer, Integer> cs2Count = cs1cs2Count.get(cs1);
+                        if (cs2Count == null) {
+                            //System.out.println("no information for cs1 in cps(p)");
+                            continue;
+                        }
+                        for (Integer cs2 : css2) {
+                            Integer count = cs2Count.get(cs2);
+                            if (count == null) {
+                                //System.out.println("no information for cs2 in cps(p)(cs1)");
+                                continue;
+                            }
+
+                            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsCountNum1 = getCSSSubj(ds1).get(cs1);
+                            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsCountNum2 = getCSSSubj(ds2).get(cs2);
+                            //System.out.println("count: "+count);
+                            Long m1 = getMultiplicitySubjS(count, p, countPsCountNum1, ps1, map1, countPsCountNum2, ps2, map2);
+                            //System.out.println("m1: "+m1);
+                            if (m1 > 0) {
+                                card += m1;
+                                HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> aux1 = useful.get(ds1);
+                                if (aux1 == null) {
+                                    aux1 = new HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>();
+                                }
+                                Pair<HashSet<Integer>, HashSet<Integer>> pair = aux1.get(ds2);
+                                HashSet<Integer> s1, s2;
+                                if (pair == null) {
+                                    s1 = new HashSet<Integer>();
+                                    s2 = new HashSet<Integer>();
+                                } else {
+                                    s1 = pair.getFirst();
+                                    s2 = pair.getSecond();
+                                } 
+                                s1.add(cs1);
+                                s2.add(cs2);
+                                pair = new Pair<HashSet<Integer>, HashSet<Integer>>(s1, s2);
+                                aux1.put(ds2, pair);
+                                useful.put(ds1, aux1);
+                            }
+                        }
+                    }
+                }
+                c += Math.round(Math.ceil(card*selCttes));
+            }
+        }
+        return c;
+    }        
+
+    public static Vector<Tree<Pair<Integer,Triple>>> makeCPTreeSubj(HashMap<String, Set<Triple>> ps1, HashMap<String, Set<Triple>> ps2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+        Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
+        for (Integer ds1 : useful.keySet()) {
+            HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> ds2Pair = useful.get(ds1);
+            HashSet<Integer> relevantCss1 = computeRelevantCS(ps1.keySet(), ds1, predicateIndex);
+            long c1 = computeCostS(ds1, getCSSSubj(ds1), relevantCss1, ps1.keySet(), ps1, true);
+            for (Integer ds2 : ds2Pair.keySet()) {
+                Pair<HashSet<Integer>, HashSet<Integer>> pair = ds2Pair.get(ds2);
+                HashSet<Integer> s1 = pair.getFirst();
+                HashSet<Integer> s2 = pair.getSecond();
+                Tree<Pair<Integer,Triple>> plan1 = makeCSTreeSubj(ps1, ds1, s1, predicateIndex);
+                Tree<Pair<Integer,Triple>> plan2 = makeCSTreeSubj(ps2, ds2, s2, predicateIndex);
+                HashSet<Integer> relevantCss2 = computeRelevantCS(ps2.keySet(), ds2, predicateIndex);
+                //long c1 = computeCost(ds1, getCSSSubj(ds1), s1, ps1.keySet(), ps1, true);
+                long c2 = computeCostS(ds2, getCSSSubj(ds2), relevantCss2, ps2.keySet(), ps2, true);
+                //System.out.println("plan1: "+plan1+". plan2: "+plan2);
+                //System.out.println("c1: "+c1+". c2: "+c2);
+                Tree<Pair<Integer,Triple>> nT = null;
+                if (c1 > c2) {
+                    Tree<Pair<Integer,Triple>> aux = plan2;
+                    plan2 = plan1;
+                    plan1 = aux;
+                    //nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
+                } /*else {
+                    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
+                }   */     
+                nT = makeTree(ds1, plan1, ds2, plan2);
+                //System.out.println("nT: "+nT);
+                if (nT != null) 
+                    res.add(nT);
+            }
+        }
+        return res;
+    }
+
+    public static long getCardinalityCPObj(Set<Triple> sq1, HashMap<String, Set<Triple>> map1, Set<String> ps12, Set<Triple> sq2, HashMap<String, Set<Triple>> map2, HashMap<Integer,HashSet<Integer>> relevantCSTs1, HashMap<Integer,HashSet<Integer>> relevantCSTs2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful) {
+
+        Set<String> ps1 = map1.keySet();
+        Set<String> ps2 = map2.keySet();
+
+        long c = 0L;
+        for (Integer ds1 : relevantCSTs1.keySet()) {
+            Set<Integer> css1 = relevantCSTs1.get(ds1);
+            for (Integer ds2 : relevantCSTs2.keySet()) {
+                double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
+                long card = 0L;
+                for (String p : ps12) {
+                    //System.out.println("p: "+p);
+                    HashMap<Integer, HashMap<Integer, Integer>> cs1cs2Count = getCPSObj(ds1, ds2).get(p);
+                    if (cs1cs2Count == null) {
+                        //System.out.println("no information for p in cps");
+                        continue;
+                    }
+                    Set<Integer> css2 = relevantCSTs2.get(ds2);
+                    for (Integer cs1 : css1) {
+                        HashMap<Integer, Integer> cs2Count = cs1cs2Count.get(cs1);
+                        if (cs2Count == null) {
+                            //System.out.println("no information for cs1 in cps(p)");
+                            continue;
+                        }
+                        for (Integer cs2 : css2) {
+                            Integer count = cs2Count.get(cs2);
+                            if (count == null) {
+                                //System.out.println("no information for cs2 in cps(p)(cs1)");
+                                continue;
+                            }
+                            //System.out.println("count: "+count);
+                            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsCountNum1 = getCSSObj(ds1).get(cs1);
+                            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsCountNum2 = getCSSObj(ds2).get(cs2);
+
+                            Long m1 = getMultiplicityObjS(count, p, countPsCountNum1, ps1, map1, countPsCountNum2, ps2, map2);
+                            //System.out.println("m1: "+m1);
+                            if (m1 > 0) {
+                                card += m1;
+                                HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> aux1 = useful.get(ds1);
+                                if (aux1 == null) {
+                                    aux1 = new HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>();
+                                }
+                                Pair<HashSet<Integer>, HashSet<Integer>> pair = aux1.get(ds2);
+                                HashSet<Integer> s1, s2;
+                                if (pair == null) {
+                                    s1 = new HashSet<Integer>();
+                                    s2 = new HashSet<Integer>();
+                                } else {
+                                    s1 = pair.getFirst();
+                                    s2 = pair.getSecond();
+                                }
+                                s1.add(cs1);
+                                s2.add(cs2);
+                                pair = new Pair<HashSet<Integer>, HashSet<Integer>>(s1, s2);
+                                aux1.put(ds2, pair);
+                                useful.put(ds1, aux1);
+                            }
+                        }
+                    }
+                }
+                c += Math.round(Math.ceil(card*selCttes));
+            }
+        }
+        return c;
+    }
+
+    public static long getCardinalityCPSubjObj(Set<Triple> sq1, HashMap<String, Set<Triple>> map1, Set<String> ps12, Set<Triple> sq2, HashMap<String, Set<Triple>> map2, HashMap<Integer,HashSet<Integer>> relevantCSTs1, HashMap<Integer,HashSet<Integer>> relevantCSTs2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful) {
+
+        Set<String> ps1 = map1.keySet();
+        Set<String> ps2 = map2.keySet();
+
+        long c = 0L;
+        for (Integer ds1 : relevantCSTs1.keySet()) {
+            //System.out.println("ds1: "+ds1);
+            Set<Integer> css1 = relevantCSTs1.get(ds1);
+            for (Integer ds2 : relevantCSTs2.keySet()) {
+                //System.out.println("ds2: "+ds2);
+                double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
+                long card = 0L;
+                for (String p : ps12) {
+                    //System.out.println("p: "+p);
+                    HashMap<Integer, HashMap<Integer, Integer>> cs1cs2Count = getCPSSubjObj(ds1, ds2).get(p);
+                    if (cs1cs2Count == null) {
+                        //System.out.println("no information for p in cps");
+                        continue;
+                    }
+                    Set<Integer> css2 = relevantCSTs2.get(ds2);
+                    for (Integer cs1 : css1) {
+                        HashMap<Integer, Integer> cs2Count = cs1cs2Count.get(cs1);
+                        if (cs2Count == null) {
+                            //System.out.println("no information for cs1 in cps(p)");
+                            continue;
+                        }
+                        for (Integer cs2 : css2) {
+                            Integer count = cs2Count.get(cs2);
+                            if (count == null) {
+                                //System.out.println("no information for cs2 in cps(p)(cs1)");
+                                continue;
+                            }
+                            //System.out.println("count: "+count);
+                            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsCountNum1 = getCSSSubj(ds1).get(cs1);
+                            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> countPsCountNum2 = getCSSObj(ds2).get(cs2);
+
+                            Long m1 = getMultiplicitySubjObjS(count, p, countPsCountNum1, ps1, map1, countPsCountNum2, ps2, map2);
+                            //System.out.println("m1: "+m1);
+                            if (m1 > 0) {
+                                card += m1;
+                                HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> aux1 = useful.get(ds1);
+                                if (aux1 == null) {
+                                    aux1 = new HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>();
+                                }
+                                Pair<HashSet<Integer>, HashSet<Integer>> pair = aux1.get(ds2);
+                                HashSet<Integer> s1, s2;
+                                if (pair == null) {
+                                    s1 = new HashSet<Integer>();
+                                    s2 = new HashSet<Integer>();
+                                } else {
+                                    s1 = pair.getFirst();
+                                    s2 = pair.getSecond();
+                                }
+                                s1.add(cs1);
+                                s2.add(cs2);
+                                pair = new Pair<HashSet<Integer>, HashSet<Integer>>(s1, s2);
+                                aux1.put(ds2, pair);
+                                useful.put(ds1, aux1);
+                            }
+                        }
+                    }
+                }
+                c += Math.round(Math.ceil(card*selCttes));
+            }
+        }
+        return c;
+    }
+
+
+    public static Integer getStartCS(Set<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
+
+        Integer key = produceStarJoinOrdering.getIKey(ps);
+        //System.out.println("key: "+key);
+        if (hc.containsKey(key)) {
+            return key;
+        }
+        int c = produceStarJoinOrdering.computeCost(ps, css, predicateIndex);
+        //System.out.println("cost: "+c);
+        if (c == 0) {
+            return null;
+        }
+        HashMap<Integer, Integer> costTmp = new HashMap<Integer, Integer>();
+        costTmp.put(key, c);
+        additionalSets.put(key, ps);
+        completeHC(costTmp, css, hc, additionalSets, cost, predicateIndex);
+        return key;
+    }
+
+    public static void completeHC(HashMap<Integer, Integer> costTmp, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost, HashMap<String, HashSet<Integer>> predicateIndex) {
+
+        while (costTmp.size() > 0) {
+            HashMap<Integer, Integer> costAux = new HashMap<Integer, Integer>();
+            for (Integer cs : costTmp.keySet()) {
+                Set<String> ps = null;
+                if (css.containsKey(cs)) {
+                    ps = css.get(cs).getSecond().keySet();
+                } else {
+                    ps = additionalSets.get(cs);
+                }
+                if (ps.size() < 2) {
+                    continue;
+                }
+                Integer cheapestSS = null;
+                Integer cheapestCost = null;
+                for (String p : ps) {
+                    HashSet<String> psAux = new HashSet<String>(ps);
+                    psAux.remove(p);
+                    Integer key = produceStarJoinOrdering.getIKey(psAux);
+                    Integer c = -1;
+                    if (cost.containsKey(key)) {
+                        c = cost.get(key);
+                    } else if (costTmp.containsKey(key)) {
+                        c = costTmp.get(key);
+                    } else if (costAux.containsKey(key)) {
+                        c = costAux.get(key);
+                    } else {
+                        c = produceStarJoinOrdering.computeCost(psAux, css, predicateIndex);
+                        costAux.put(key, c);
+                        additionalSets.put(key, psAux);
+                    }
+                    if ((cheapestSS == null) || (c < cheapestCost)) {
+                        cheapestSS = key;
+                        cheapestCost = c;
+                    }
+                }
+                hc.put(cs, cheapestSS);
+            }
+            cost.putAll(costTmp);
+            costTmp = costAux;
+        }
+    }
+
+    public static Tree<Pair<Integer,Triple>> makeCSTreeSubj(HashMap<String, Set<Triple>> ps, Integer ds, HashSet<Integer> set, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSSubj(ds);
+        HashMap<Integer, Integer> hc = getHCSubj(ds);
+        HashMap<Integer, Set<String>> additionalSets = getAdditionalSetsSubj(ds);
+        HashMap<Integer, Integer> cost = getCostSubj(ds);
+        HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndexSubj(ds, predicateIndex);
+
+        LinkedList<String> order = new LinkedList<String>();
+        Integer s = getStartCS(ps.keySet(), css, predicateIndexDS, hc, additionalSets, cost); //produceStarJoinOrdering.getIKey(ps.keySet());
+        //System.out.println("start cs: "+s);
+        Set<String> sPreds = null;
+        if (s != null) {
+            if (css.containsKey(s)) {
+                sPreds = css.get(s).getSecond().keySet();
+            } else if (additionalSets.containsKey(s)) {
+                sPreds = additionalSets.get(s);
+            }
+        }
+        while ((sPreds != null) && hc.containsKey(s)) {
+            Integer cheapestSS = hc.get(s);
+            Set<String> cPreds = null;
+            if (css.containsKey(cheapestSS)) {
+                cPreds = css.get(cheapestSS).getSecond().keySet();
+            } else {
+                cPreds = additionalSets.get(cheapestSS);
+            }
+            Set<String> aux = new HashSet<String>(sPreds);
+            aux.removeAll(cPreds);
+            String p = aux.iterator().next();
+            if (ps.containsKey(p)) {
+                order.addFirst(p);
+            }
+            s = cheapestSS;
+            sPreds = cPreds;
+        }
+        if ((sPreds != null) && sPreds.size()>0) {
+            String p = sPreds.iterator().next();
+            if (ps.containsKey(p)) {
+                order.addFirst(p);
+            }
+        }
+        //System.out.println("star order: ");
+        //System.out.println(order);
+        Tree<Pair<Integer,Triple>> sortedStar = convertToTreeS(order, ps, ds, predicateIndex, true);
+        return sortedStar;
+    }
+
+    public static Vector<Tree<Pair<Integer,Triple>>> makeCPTreeObj(HashMap<String, Set<Triple>> ps1, HashMap<String, Set<Triple>> ps2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+        Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
+        for (Integer ds1 : useful.keySet()) {
+            HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> ds2Pair = useful.get(ds1);
+            HashSet<Integer> relevantCss1 = computeRelevantCS(ps1.keySet(), ds1, predicateIndex);
+            long c1 = computeCostS(ds1, getCSSObj(ds1), relevantCss1, ps1.keySet(), ps1, false);
+            for (Integer ds2 : ds2Pair.keySet()) {
+                Pair<HashSet<Integer>, HashSet<Integer>> pair = ds2Pair.get(ds2);
+                HashSet<Integer> s1 = pair.getFirst();
+                HashSet<Integer> s2 = pair.getSecond();
+                Tree<Pair<Integer,Triple>> plan1 = makeCSTreeObj(ps1, ds1, s1, predicateIndex);
+                Tree<Pair<Integer,Triple>> plan2 = makeCSTreeObj(ps2, ds2, s2, predicateIndex);
+                HashSet<Integer> relevantCss2 = computeRelevantCS(ps2.keySet(), ds2, predicateIndex);
+                long c2 = computeCostS(ds2, getCSSObj(ds2), relevantCss2, ps2.keySet(), ps2, false);
+                Tree<Pair<Integer,Triple>> nT = null;
+                if (c1 > c2) {
+                    Tree<Pair<Integer,Triple>> aux = plan2;
+                    plan2 = plan1;
+                    plan1 = aux;
+                }
+                nT = makeTree(ds1, plan1, ds2, plan2);
+                /*if (c1 <= c2) {
+                    nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
+                } else {
+                    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
+                }*/
+                if (nT != null) {
+                    res.add(nT);
+                }
+            }
+        }
+        return res;
+    }
+
+    public static Vector<Tree<Pair<Integer,Triple>>> makeCPTreeSubjObj(HashMap<String, Set<Triple>> ps1, HashMap<String, Set<Triple>> ps2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj) {
+        Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
+        for (Integer ds1 : useful.keySet()) {
+            HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> ds2Pair = useful.get(ds1);
+            HashSet<Integer> relevantCss1 = computeRelevantCS(ps1.keySet(), ds1, predicateIndexSubj);
+            long c1 = computeCostS(ds1, getCSSSubj(ds1), relevantCss1, ps1.keySet(), ps1, true);
+            for (Integer ds2 : ds2Pair.keySet()) {
+                Pair<HashSet<Integer>, HashSet<Integer>> pair = ds2Pair.get(ds2);
+                HashSet<Integer> s1 = pair.getFirst();
+                HashSet<Integer> s2 = pair.getSecond();
+                Tree<Pair<Integer,Triple>> plan1 = makeCSTreeSubj(ps1, ds1, s1, predicateIndexSubj);
+                Tree<Pair<Integer,Triple>> plan2 = makeCSTreeObj(ps2, ds2, s2, predicateIndexObj);
+                HashSet<Integer> relevantCss2 = computeRelevantCS(ps2.keySet(), ds2, predicateIndexObj);
+                long c2 = computeCostS(ds2, getCSSObj(ds2), relevantCss2, ps2.keySet(), ps2, false);
+                //System.out.println("plan1 : "+plan1+". plan2: "+plan2+". c1: "+c1+". c2: "+c2);
+                Tree<Pair<Integer,Triple>> nT = null;
+                if (c1 > c2) {
+                    Tree<Pair<Integer,Triple>> aux = plan2;
+                    plan2 = plan1;
+                    plan1 = aux;
+                }
+                nT = makeTree(ds1, plan1, ds2, plan2);
+                /*if (c1 <= c2) {
+                    nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
+                } else {
+                    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
+                }*/
+                if (nT != null) {
+                    res.add(nT); 
+                }
+            }
+        }
+        return res;
+    }
+
+    public static Tree<Pair<Integer,Triple>> makeCSTreeObj(HashMap<String, Set<Triple>> ps, Integer ds, HashSet<Integer> set, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+
+        HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSObj(ds);
+        HashMap<Integer, Integer> hc = getHCObj(ds);
+        HashMap<Integer, Set<String>> additionalSets = getAdditionalSetsObj(ds);
+        HashMap<Integer, Integer> cost = getCostObj(ds);
+        HashMap<String, HashSet<Integer>> predicateIndexDS = getPredicateIndexObj(ds, predicateIndex);
+
+        LinkedList<String> order = new LinkedList<String>();
+        Integer s = getStartCS(ps.keySet(), css, predicateIndexDS, hc, additionalSets, cost); 
+        Set<String> sPreds = null;
+        if (s != null) {
+            if (css.containsKey(s)) {
+                sPreds = css.get(s).getSecond().keySet();
+            } else if (additionalSets.containsKey(s)) {
+                sPreds = additionalSets.get(s);
+            }
+        }
+        while ((sPreds != null) && hc.containsKey(s)) {
+            Integer cheapestSS = hc.get(s);
+            Set<String> cPreds = null;
+            if (css.containsKey(cheapestSS)) {
+                cPreds = css.get(cheapestSS).getSecond().keySet();
+            } else {
+                cPreds = additionalSets.get(cheapestSS);
+            }
+            Set<String> aux = new HashSet<String>(sPreds);
+            aux.removeAll(cPreds);
+            String p = aux.iterator().next();
+            if (ps.containsKey(p)) {
+                order.addFirst(p);
+            }
+            s = cheapestSS;
+            sPreds = cPreds;
+        }
+        if ((sPreds != null) && sPreds.size()>0) {
+            String p = sPreds.iterator().next();
+            if (ps.containsKey(p)) {
+                order.addFirst(p);
+            }
+        }
+        Tree<Pair<Integer,Triple>> sortedStar = convertToTreeS(order, ps, ds, predicateIndex, false);
+        return sortedStar;
     }
 
     // precondition: triples in sq1 share the same subject
@@ -1430,8 +2253,8 @@ class evaluateSPARQLQuery {
         if (cost>0 && cost < c) {
             //order = makeTree(ts1, ts2, costSS12.getSecond());
             DPTable.put(set, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(tree, new Pair<Long, Long>(cost,cost))); //0L)));
-            return true;
-        }
+	    return true;
+	}
         return false;
     }
 
@@ -1541,6 +2364,63 @@ class evaluateSPARQLQuery {
         return res;
     }
 
+    public static Tree<Pair<Integer,Triple>> makeTree(Integer sourceL, Tree<Pair<Integer,Triple>> treeL, Integer sourceR, Tree<Pair<Integer,Triple>> treeR) {
+        //System.out.println("Make tree out of "+vTreeL+" and "+vTreeR);
+        Tree<Pair<Integer,Triple>> res = null;
+
+            Set<Triple> triples = obtainTriples(treeL);
+            triples.retainAll(obtainTriples(treeR));
+
+                    boolean add = true;
+                    Tree<Pair<Integer,Triple>> tmpTreeL = treeL;
+                    for (Triple t : triples) {
+                        if (sourceL.equals(sourceR)) {
+                            double connectedSameSourceL = obtainNumberConnectedTriplesSameSource(tmpTreeL, t, sourceL);
+                            double connectedSameSourceR = obtainNumberConnectedTriplesSameSource(treeR, t, sourceR);
+                            double connectedL = obtainNumberConnectedTriples(tmpTreeL, t);
+                            double connectedR = obtainNumberConnectedTriples(treeR, t);
+                            if (connectedSameSourceR > connectedSameSourceL || ((connectedSameSourceR == connectedSameSourceL) && connectedR >= connectedL)) {
+                                tmpTreeL = remove(tmpTreeL, t);
+                            } else {
+                                treeR = remove(treeR, t);
+                            }
+
+                        } else {
+                            //treeL = null;
+                            //treeR = null; 
+                            add = false;
+                            break;
+                        }
+                        if (tmpTreeL == null || treeR == null) {
+                            break;
+                        }
+                    }
+                    if (add && tmpTreeL != null && treeR != null) {
+                        res = new Branch<Pair<Integer,Triple>>(tmpTreeL, treeR);
+                    } else if (add && tmpTreeL != null) {
+                        res = tmpTreeL;
+                    } else if (add && treeR != null) {
+                        res = treeR;
+                    }
+        return res;
+    }
+    public static HashMap<String, Set<Triple>> obtainPredicates(Set<Triple> set) {
+        HashMap<String, Set<Triple>> map = new HashMap<String, Set<Triple>>();
+        for (Triple t : set) {
+            Node p = t.getPredicate();
+            if (p.isURI()) {
+                String pStr = "<"+p.getURI()+">";
+                Set<Triple> s = map.get(pStr);
+                if (s==null) {
+                    s = new HashSet<Triple>();
+                }
+                s.add(t);
+                map.put(pStr, s);
+            }
+        }
+        return map;
+    }
+
     public static Set<String> obtainBoundPredicates(Tree<Pair<Integer,Triple>> tree, HashMap<String, Triple> map) {
         Set<String> ps = new HashSet<String>();
         Set<Pair<Integer,Triple>> elems = tree.getElements();
@@ -1596,8 +2476,10 @@ class evaluateSPARQLQuery {
                 } else {
                     nT = new Branch<Pair<Integer,Triple>>(rightTree, leftTree);
                 }
+                //long t0 = System.currentTimeMillis();
                 long tmpCost = getCostCPSubj(obtainTriples(leftTree), sourceLT, obtainTriples(rightTree), sourceRT, predicateIndex);
-                //LOG System.out.println("tmpCost: "+tmpCost);
+                //t0 = System.currentTimeMillis() -t0;
+                //System.out.println("getCostCPSubj: "+t0);
                 if (tmpCost > 0) { 
                     res.add(nT);
                     cost += tmpCost;
@@ -1689,43 +2571,25 @@ class evaluateSPARQLQuery {
         return new Pair<Long, Vector<Tree<Pair<Integer,Triple>>>>(cost, res);
     }
 
-    public static Long getMultiplicitySubj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, HashSet<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, HashSet<String> ps2, HashMap<String, Triple> map2) {
+    public static Long getMultiplicitySubj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
 
         double sel = 1.0;
-        //double selTmp = 1.0;
         Integer count = cPs.getFirst();
-        //System.out.println("p: "+p);
         for (String p1 : ps1) {
             Triple t = map1.get(p1);
             Node s = t.getSubject();
             Node o = t.getObject();
             // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
             if (original || !p1.equals(p)) {
-                //System.out.println("p1: "+p1);
                 boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
                 if (c) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     sel = sel*(((double)p_m)/count);
-                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
             }
-                /*if (!o.isVariable()) {
-                    Integer p_m = cPs.getSecond().get(p1).getFirst();
-                    Integer p_d = cPs.getSecond().get(p1).getSecond();
-                    System.out.println("o: "+o+". p_m: "+p_m+". p_d: "+p_d);
-                    double tmp = 1.0/ p_d;
-                    if (tmp < selTmp) {
-                        selTmp = tmp;
-                    }
-                }*/
-            
         }
-        //System.out.println("selTmp: "+selTmp);
-        //sel = sel * selTmp; // CONSIDER CONSTANTS first star
-        //selTmp = 1.0;
         count = cPs2.getFirst();
         for (String p2 : ps2) {
-            //System.out.println("p2: "+p2);
             Triple t = map2.get(p2);
             Node s = t.getSubject();
             Node o = t.getObject();
@@ -1733,99 +2597,117 @@ class evaluateSPARQLQuery {
             if (c) {
                 Integer p_m = cPs2.getSecond().get(p2).getFirst();
                 sel = sel*(((double)p_m)/count);
-                //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
             }
-            /*if (!o.isVariable()) {
-                Integer p_m = cPs2.getSecond().get(p2).getFirst();
-                Integer p_d = cPs2.getSecond().get(p2).getSecond();
-                System.out.println("o: "+o+". p_m: "+p_m+". p_d: "+p_d);
-                double tmp = 1.0/ p_d;
-                if (tmp < selTmp) {
-                    selTmp = tmp;
-                }
-            }*/
         }
-        //System.out.println("selTmp: "+selTmp);
-        //sel = sel * selTmp;  // CONSIDER CONSTANTS second star
-        //System.out.println("m: "+m+". sel: "+sel);
-        //System.out.println("sel: "+sel);
         return Math.round(Math.ceil(m*sel));
     }
 
-    public static Long getMultiplicitySubjObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, HashSet<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, HashSet<String> ps2, HashMap<String, Triple> map2) {
+    public static Long getMultiplicitySubjS(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Set<Triple>> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Set<Triple>> map2) {
 
         double sel = 1.0;
-        //double selTmp = 1.0;
         Integer count = cPs.getFirst();
-        //System.out.println("p: "+p);
+        for (String p1 : ps1) {
+          for (Triple t : map1.get(p1)) {
+            Node s = t.getSubject();
+            Node o = t.getObject();
+            // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
+            if (original || !p1.equals(p)) {
+                boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
+                if (c) {
+                    Integer p_m = cPs.getSecond().get(p1).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                }
+            }
+          }
+        }
+        count = cPs2.getFirst();
+        for (String p2 : ps2) {
+          for (Triple t : map2.get(p2)) {
+            Node s = t.getSubject();
+            Node o = t.getObject();
+            boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
+            if (c) {
+                Integer p_m = cPs2.getSecond().get(p2).getFirst();
+                sel = sel*(((double)p_m)/count);
+            }
+          }
+        }
+        return Math.round(Math.ceil(m*sel));
+    }
+
+    public static Long getMultiplicitySubjObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
+
+        double sel = 1.0;
+        Integer count = cPs.getFirst();
         for (String p1 : ps1) {
             Triple t = map1.get(p1);
             Node s = t.getSubject();
             Node o = t.getObject();
             // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
             if (original || !p1.equals(p)) {
-                //System.out.println("p1: "+p1);
                 boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
                 if (c) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     sel = sel*(((double)p_m)/count);
-                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
             }
-                /*if (!o.isVariable()) {
-                    Integer p_m = cPs.getSecond().get(p1).getFirst();
-                    Integer p_d = cPs.getSecond().get(p1).getSecond();
-                    //System.out.println("o: "+o+". p_m: "+p_m+". p_d: "+p_d);
-                    double tmp = 1.0/ p_d;
-                    if (tmp < selTmp) {
-                        selTmp = tmp;
-                    }
-                }*/
-            
         }
-        //System.out.println("selTmp: "+selTmp);
-        //sel = sel * selTmp; // CONSIDER CONSTANTS first star
-        //selTmp = 1.0;
         count = cPs2.getFirst();
         for (String p2 : ps2) {
             Triple t = map2.get(p2);
             Node s = t.getSubject();
             Node o = t.getObject();
-            //System.out.println("p2: "+p2);
             if (original || !p2.equals(p)) {
                 boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
                 if (c) {
                     Integer p_m = cPs2.getSecond().get(p2).getFirst();
                     sel = sel*(((double)p_m)/count);
-                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
             }
-                /*if (!s.isVariable()) {
-                    Integer p_m = cPs2.getSecond().get(p2).getFirst();
-                    Integer p_d = cPs2.getSecond().get(p2).getSecond();
-                    //System.out.println("s: "+s+". p_m: "+p_m+". p_d: "+p_d);
-                    double tmp = 1.0/ p_d;
-                    if (tmp < selTmp) {
-                        selTmp = tmp;
-                    }
-                }*/
-            
         }
-        //System.out.println("selTmp: "+selTmp);
-        //sel = sel * selTmp;  // CONSIDER CONSTANTS second star
-        //System.out.println("m: "+m+". sel: "+sel);
-        //System.out.println("sel: "+sel);
         return Math.round(Math.ceil(m*sel));
     }
 
-    public static Long getMultiplicityObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, HashSet<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, HashSet<String> ps2, HashMap<String, Triple> map2) {
+    public static Long getMultiplicitySubjObjS(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Set<Triple>> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Set<Triple>> map2) {
 
         double sel = 1.0;
-        //double selTmp = 1.0;
         Integer count = cPs.getFirst();
-        //System.out.println("p: "+p);
         for (String p1 : ps1) {
-                //System.out.println("p1: "+p1);
+          for (Triple t : map1.get(p1)) {
+            Node s = t.getSubject();
+            Node o = t.getObject();
+            // COMMENT THE CONDITIONAL TO STICK TO THE PAPER FORMULA
+            if (original || !p1.equals(p)) {
+                boolean c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
+                if (c) {
+                    Integer p_m = cPs.getSecond().get(p1).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                }
+            }
+          }
+        }
+        count = cPs2.getFirst();
+        for (String p2 : ps2) {
+          for (Triple t : map2.get(p2)) {
+            Node s = t.getSubject();
+            Node o = t.getObject();
+            if (original || !p2.equals(p)) {
+                boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                if (c) {
+                    Integer p_m = cPs2.getSecond().get(p2).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                }
+            }
+          }
+        }
+        return Math.round(Math.ceil(m*sel));
+    }
+
+    public static Long getMultiplicityObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
+
+        double sel = 1.0;
+        Integer count = cPs.getFirst();
+        for (String p1 : ps1) {
             Triple t = map1.get(p1);
             Node s = t.getSubject();
             Node o = t.getObject();
@@ -1834,52 +2716,52 @@ class evaluateSPARQLQuery {
                 if (c) {
                     Integer p_m = cPs.getSecond().get(p1).getFirst();
                     sel = sel*(((double)p_m)/count);
-                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
             }
-                /*if (!s.isVariable()) {
-                    Integer p_m = cPs.getSecond().get(p1).getFirst();
-                    Integer p_d = cPs.getSecond().get(p1).getSecond();
-                    //System.out.println("s: "+s+". p_m: "+p_m+". p_d: "+p_d);
-                    double tmp = 1.0/ p_d;
-                    if (tmp < selTmp) {
-                        selTmp = tmp;
-                    }
-                }*/
-            
         }
-        //System.out.println("selTmp: "+selTmp);
-        //sel = sel * selTmp; // CONSIDER CONSTANTS first star
-        //selTmp = 1.0;
         count = cPs2.getFirst();
         for (String p2 : ps2) {
             Triple t = map2.get(p2);
             Node s = t.getSubject();
             Node o = t.getObject();
-            //System.out.println("p2: "+p2);
-//            if (original || !p2.equals(p)) {
                 boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
                 if (c) {
                     Integer p_m = cPs2.getSecond().get(p2).getFirst();
                     sel = sel*(((double)p_m)/count);
-                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
-            //}
-                /*if (!s.isVariable()) {
-                    Integer p_m = cPs2.getSecond().get(p2).getFirst();
-                    Integer p_d = cPs2.getSecond().get(p2).getSecond();
-                    //System.out.println("s: "+s+"p_m: "+p_m+". p_d: "+p_d);
-                    double tmp = 1.0/ p_d;
-                    if (tmp < selTmp) {
-                        selTmp = tmp;
-                    }
-                }*/
-            
         }
-        //System.out.println("selTmp: "+selTmp);
-        //sel = sel * selTmp;  // CONSIDER CONSTANTS second star
-        //System.out.println("m: "+m+". sel: "+sel);
-        //System.out.println("sel: "+sel);
+        return Math.round(Math.ceil(m*sel));
+    }
+
+    public static Long getMultiplicityObjS(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Set<Triple>> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Set<Triple>> map2) {
+
+        double sel = 1.0;
+        Integer count = cPs.getFirst();
+        for (String p1 : ps1) {
+          for (Triple t : map1.get(p1)) {
+            Node s = t.getSubject();
+            Node o = t.getObject();
+            if (original || !p1.equals(p)) {
+                boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                if (c) {
+                    Integer p_m = cPs.getSecond().get(p1).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                }
+            }
+          }
+        }
+        count = cPs2.getFirst();
+        for (String p2 : ps2) {
+            for (Triple t : map2.get(p2)) {
+                Node s = t.getSubject();
+                Node o = t.getObject();
+                boolean c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                if (c) {
+                    Integer p_m = cPs2.getSecond().get(p2).getFirst();
+                    sel = sel*(((double)p_m)/count);
+                }
+            }
+        }
         return Math.round(Math.ceil(m*sel));
     }
 
@@ -2005,7 +2887,10 @@ class evaluateSPARQLQuery {
     }
 
     public static long getCostCPSubj(Set<Triple> sq1, Integer ds1, Set<Triple> sq2, Integer ds2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
+        //long t0 = System.currentTimeMillis();
         double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
+        //t0 = System.currentTimeMillis()-t0;
+        //System.out.println("getConstantSelectivity: "+t0);
         HashSet<String> ps1 = new HashSet<String>();
         HashMap<String, Triple> map1 = new HashMap<String, Triple>();
         for (Triple t : sq1) {
@@ -2027,79 +2912,126 @@ class evaluateSPARQLQuery {
                 map2.put(pStr, t);
             }
         }
-
+        //int n1 = 0;
+        //int n2 = 0;
         HashSet<Integer> css1 = computeRelevantCS(ps1, ds1, predicateIndex);
         HashSet<Integer> css2 = computeRelevantCS(ps2, ds2, predicateIndex);
-        //System.out.println("there are "+css1.size()+" relevant css for "+ps1+" and "+ds1);
-        //System.out.println("there are "+css2.size()+" relevant css for "+ps2+" and "+ds2);
+        //System.out.println("(s) there are "+css1.size()+" relevant css for "+ps1+" and "+ds1);
+        //System.out.println("(s) there are "+css2.size()+" relevant css for "+ps2+" and "+ds2);
+        Set<String> ps12 = getCPConnectionSubj(sq1, sq2);
+        Set<String> ps21 = getCPConnectionSubj(sq2, sq1);
+        //System.out.println("(s) ps12: "+ps12+". ps21: "+ps21);
         // Predicate --> Count
         HashMap<String, Long> mult12 = new HashMap<String, Long>();
         long c = 0L;
         HashMap<String, Long> mult21 = new HashMap<String, Long>();
 
-        for (Integer cs1 : css1) {
-            Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
-
-            for (Integer cs2 : css2) {
-                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSSubj(ds2).get(cs2);
-
-                HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPSSubj(ds1, ds2).get(cs1);
-                if (css2Ps != null) {
+        for (String p : ps12) {
+            HashMap<Integer, HashMap<Integer, Integer>> cs1cs2Count = getCPSSubj(ds1, ds2).get(p);
+            if (cs1cs2Count == null) {
+                //System.out.println("cps has no information for p: "+p);
+                continue;
+            }
+            for (Integer cs1 : css1) {
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
+                HashMap<Integer, Integer> cs2Count = cs1cs2Count.get(cs1);
+                if (cs2Count == null) {
+                    //System.out.println("cps(p) has no information for cs1: "+cs1);
+                    continue;
+                }
+                for (Integer cs2 : css2) {
+                    Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSSubj(ds2).get(cs2);
+                    Integer count = cs2Count.get(cs2);
+                    if (count == null) {
+                        //System.out.println("cps(p)(cs1) has no information for cs2: "+cs2);
+                        continue;
+                    }
+                //HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPSSubj(ds1, ds2).get(cs1);
+                //if (css2Ps != null) {
+                    //n1++;
                     //System.out.println("Links 1 -> 2");
-                    HashMap<String, Integer> links12 = css2Ps.get(cs2);
-                    if (links12 != null) {
+                    //HashMap<String, Integer> links12 = css2Ps.get(cs2);
+                    //if (links12 != null) {
                         //System.out.println("There are "+links12.size()+" 12-linking predicates between the css");
-                        HashSet<String> relevantLinks = new HashSet<String>(links12.keySet());
-                        relevantLinks.retainAll(ps1);
-                        for (String p : relevantLinks) {
-                            Triple t1 = map1.get(p);
-                            Triple t2 = sq2.iterator().next();
-                            if (t1.getObject().equals(t2.getSubject())) {
-                                Long m1 = getMultiplicitySubj(links12.get(p), p, cPs, ps1, map1, cPs2, ps2, map2);
+                        //HashSet<String> relevantLinks = new HashSet<String>(links12.keySet());
+                        //relevantLinks.retainAll(ps1);
+                        //for (String p : relevantLinks) {
+                            //n1++;
+                            //Triple t1 = map1.get(p);
+                            //Triple t2 = sq2.iterator().next();
+                            //if (t1.getObject().equals(t2.getSubject())) {
+                                Long m1 = getMultiplicitySubj(count, p, cPs, ps1, map1, cPs2, ps2, map2);
                                 //System.out.println("(S1) multiplicity went from "+links12.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult12.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
                                 }
                                 mult12.put(p, m1+m2);
-                            }
-                        }
-                    }
+                            //}
+                        //}
+                    //}
                 }
-                css2Ps = getCPSSubj(ds2, ds1).get(cs2);
-                if (css2Ps != null) {
+            }
+        }
+        for (String p : ps21) {
+            HashMap<Integer, HashMap<Integer, Integer>> cs2cs1Count = getCPSSubj(ds2, ds1).get(p);
+            if (cs2cs1Count == null) {
+                //System.out.println("cps has no information for p: "+p);
+                continue;
+            }
+            for (Integer cs2 : css2) {
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSSubj(ds2).get(cs2);
+                HashMap<Integer, Integer> cs1Count = cs2cs1Count.get(cs2);
+                if (cs1Count == null) {
+                    //continue;
+                    //System.out.println("cps(p) has no information for cs2: "+cs2);
+                    continue;
+                }
+                for (Integer cs1 : css1) {
+                    Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
+                    Integer count = cs1Count.get(cs1);
+                    if (count == null) {
+                        //System.out.println("cps(p)(cs2) has no information for cs1: "+cs1);
+                        continue;
+                    }
+                //css2Ps = getCPSSubj(ds2, ds1).get(cs2);
+                //if (css2Ps != null) {
+                    //n2++;
                     //System.out.println("Links 2 -> 1");
-                    HashMap<String, Integer> links21 = css2Ps.get(cs1);
-                    if (links21 != null) {
+                    //HashMap<String, Integer> links21 = css2Ps.get(cs1);
+                    //if (links21 != null) {
                         //System.out.println("There are "+links21.size()+" 21-linking predicates between the css");
-                        HashSet<String> relevantLinks = new HashSet<String>(links21.keySet());
-                        relevantLinks.retainAll(ps2);
-                        for (String p : relevantLinks) {
-                            Triple t2 = map2.get(p);
-                            Triple t1 = sq1.iterator().next();
-                            if (t2.getObject().equals(t1.getSubject())) {
-                                Long m1 = getMultiplicitySubj(links21.get(p), p, cPs2, ps2, map2, cPs, ps1, map1);
+                        //HashSet<String> relevantLinks = new HashSet<String>(links21.keySet());
+                        //relevantLinks.retainAll(ps2);
+                        //for (String p : relevantLinks) {
+                            //n2++;
+                            //Triple t2 = map2.get(p);
+                            //Triple t1 = sq1.iterator().next();
+                            //if (t2.getObject().equals(t1.getSubject())) {
+                                Long m1 = getMultiplicitySubj(count, p, cPs2, ps2, map2, cPs, ps1, map1);
                                 //System.out.println("(S2) multiplicity went from "+links21.get(p)+" to "+m1+" for predicate "+p);
                                 Long m2 = mult21.get(p);
                                 if (m2 == null) {
                                     m2 = 0L;
                                 }
                                 mult21.put(p, m1+m2);
-                            }
-                        }
-                    }
+                            //}
+                        //}
+                    //}
                 }
             }
         }
-
+        //System.out.println("(s) there are "+n1+" combinations 12, and "+n2+" combinations21");
         //System.out.println("Links 1 -> 2, count: "+c12);
         for (String p : mult12.keySet()) {
             Long m = mult12.get(p);
+            //System.out.println("links12 with "+p+": "+m);
             c += m;
         }
         //System.out.println("Links 2 -> 1, count: "+c21);
         for (String p : mult21.keySet()) {
             Long m = mult21.get(p);
+            //System.out.println("links21 with "+p+": "+m);
             c += m;
         }
          
@@ -2130,16 +3062,40 @@ class evaluateSPARQLQuery {
                 map2.put(pStr, t);
             }
         }
-
+        //int n1 = 0;
         HashSet<Integer> css1 = computeRelevantCS(ps1, ds1, predicateIndexSubj);
         HashSet<Integer> css2 = computeRelevantCS(ps2, ds2, predicateIndexObj);
-        //LOG System.out.println("there are "+css1.size()+" relevant css for "+ps1+" and "+ds1);
-        //LOG System.out.println("there are "+css2.size()+" relevant css for "+ps2+" and "+ds2);
-
+        //System.out.println("(so) there are "+css1.size()+" relevant css for "+ps1+" and "+ds1);
+        //System.out.println("(so) there are "+css2.size()+" relevant css for "+ps2+" and "+ds2);
+        Set<String> ps12 = getCPConnectionSubjObj(sq1, sq2);
+        //System.out.println("(so) ps12: "+ps12);
         // Predicate --> Count
         HashMap<String, Long> mult12 = new HashMap<String, Long>();
         long c = 0L;
-
+        for (String p : ps12) {
+            HashMap<Integer, HashMap<Integer, Integer>> cs1cs2Count = getCPSSubjObj(ds1, ds2).get(p);
+            if (cs1cs2Count == null)
+                continue;
+            for (Integer cs1 : css1) {
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
+                HashMap<Integer, Integer> cs2Count = cs1cs2Count.get(cs1);
+                if (cs2Count == null)
+                    continue;
+                for (Integer cs2 : css2) {
+                    Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSObj(ds2).get(cs2);
+                    Integer count = cs2Count.get(cs2);
+                    if (count == null)
+                        continue;
+                    Long m1 = getMultiplicitySubjObj(count, p, cPs, ps1, map1, cPs2, ps2, map2);
+                    Long m2 = mult12.get(p);
+                    if (m2 == null) {
+                        m2 = 0L;
+                    }
+                    mult12.put(p, m1+m2);
+                }
+            }
+        }
+/*
         for (Integer cs1 : css1) {
             Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
 
@@ -2148,6 +3104,7 @@ class evaluateSPARQLQuery {
 
                 HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPSSubjObj(ds1, ds2).get(cs1);
                 if (css2Ps != null) {
+                    //n1++;
                     //System.out.println("Links 1 -> 2");
                     HashMap<String, Integer> links12 = css2Ps.get(cs2);
                     if (links12 != null) {
@@ -2155,6 +3112,7 @@ class evaluateSPARQLQuery {
                         HashSet<String> relevantLinks = new HashSet<String>(links12.keySet());
                         relevantLinks.retainAll(ps1);
                         for (String p : relevantLinks) {
+                            n1++;
                             Triple t1 = map1.get(p);
                             Triple t2 = sq2.iterator().next();
                             if (t1.getObject().equals(t2.getObject())) {
@@ -2171,7 +3129,7 @@ class evaluateSPARQLQuery {
                 }
             }
         }
-
+        System.out.println("(so) there are "+n1+" combinations 12");*/
         //System.out.println("Links 1 -> 2, count: "+c12);
         for (String p : mult12.keySet()) {
             Long m = mult12.get(p);
@@ -2205,17 +3163,67 @@ class evaluateSPARQLQuery {
                 map2.put(pStr, t);
             }
         }
-
+        //int n1 = 0;
+        //int n2 = 0;
         HashSet<Integer> css1 = computeRelevantCS(ps1, ds1, predicateIndex);
         HashSet<Integer> css2 = computeRelevantCS(ps2, ds2, predicateIndex);
-        //LOG System.out.println("there are "+css1.size()+" relevant css for "+ps1+" and "+ds1);
-        //LOG System.out.println("there are "+css2.size()+" relevant css for "+ps2+" and "+ds2);
-
+        //System.out.println("(o) there are "+css1.size()+" relevant css for "+ps1+" and "+ds1);
+        //System.out.println("(o) there are "+css2.size()+" relevant css for "+ps2+" and "+ds2);
+        Set<String> ps12 = getCPConnectionObj(sq1, sq2);
+        Set<String> ps21 = getCPConnectionObj(sq2, sq1);
+        //System.out.println("(o) ps12: "+ps12+". ps21: "+ps21);
         // Predicate --> Count
         HashMap<String, Long> mult12 = new HashMap<String, Long>();
         long c = 0L;
         HashMap<String, Long> mult21 = new HashMap<String, Long>();
 
+        for (String p : ps12) {
+            HashMap<Integer, HashMap<Integer, Integer>> cs1cs2Count = getCPSObj(ds1, ds2).get(p);
+            if (cs1cs2Count == null) 
+                continue;
+            for (Integer cs1 : css1) {
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSObj(ds1).get(cs1);
+                HashMap<Integer, Integer> cs2Count = cs1cs2Count.get(cs1);
+                if (cs2Count == null)
+                    continue;
+                for (Integer cs2 : css2) {
+                    Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSObj(ds2).get(cs2);
+                    Integer count = cs2Count.get(cs2);
+                    if (count == null)
+                        continue;
+                    Long m1 = getMultiplicityObj(count, p, cPs, ps1, map1, cPs2, ps2, map2);
+                    Long m2 = mult12.get(p);
+                    if (m2 == null) {
+                        m2 = 0L;
+                    }
+                    mult12.put(p, m1+m2);
+                }
+            }
+        }
+        for (String p : ps21) {
+            HashMap<Integer, HashMap<Integer, Integer>> cs2cs1Count = getCPSObj(ds2, ds1).get(p);
+            if (cs2cs1Count == null)
+                continue;
+            for (Integer cs2 : css2) {
+                Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2 = getCSSObj(ds2).get(cs2);
+                HashMap<Integer, Integer> cs1Count = cs2cs1Count.get(cs2);
+                if (cs1Count == null)
+                    continue;
+                for (Integer cs1 : css1) {
+                    Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSObj(ds1).get(cs1);
+                    Integer count = cs1Count.get(cs1);
+                    if (count == null)
+                        continue;
+                    Long m1 = getMultiplicityObj(count, p, cPs2, ps2, map2, cPs, ps1, map1);
+                    Long m2 = mult21.get(p);
+                    if (m2 == null) {
+                        m2 = 0L;
+                    }
+                    mult21.put(p, m1+m2);
+                }
+            }
+        }
+/*
         for (Integer cs1 : css1) {
             Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSObj(ds1).get(cs1);
 
@@ -2224,6 +3232,7 @@ class evaluateSPARQLQuery {
 
                 HashMap<Integer, HashMap<String, Integer>> css2Ps = getCPSObj(ds1, ds2).get(cs1);
                 if (css2Ps != null) {
+                    //n1++;
                     //System.out.println("Links 1 -> 2");
                     HashMap<String, Integer> links12 = css2Ps.get(cs2);
 
@@ -2232,6 +3241,7 @@ class evaluateSPARQLQuery {
                         HashSet<String> relevantLinks = new HashSet<String>(links12.keySet());
                         relevantLinks.retainAll(ps1);
                         for (String p : relevantLinks) {
+                            n1++;
                             Triple t1 = map1.get(p); //sq1.iterator().next(); //map1.get(p);
                             Triple t2 = sq2.iterator().next();
                             if (t1.getSubject().equals(t2.getObject())) {
@@ -2248,6 +3258,7 @@ class evaluateSPARQLQuery {
                 }
                 css2Ps = getCPSObj(ds2, ds1).get(cs2);
                 if (css2Ps != null) {
+                    //n2++;
                     //System.out.println("Links 2 -> 1");
                     HashMap<String, Integer> links21 = css2Ps.get(cs1);
                     if (links21 != null) {
@@ -2255,6 +3266,7 @@ class evaluateSPARQLQuery {
                         HashSet<String> relevantLinks = new HashSet<String>(links21.keySet());
                         relevantLinks.retainAll(ps2);
                         for (String p : relevantLinks) {
+                            n2++;
                             Triple t2 = map2.get(p);
                             Triple t1 = sq1.iterator().next();
                             if (t2.getSubject().equals(t1.getObject())) {
@@ -2271,7 +3283,7 @@ class evaluateSPARQLQuery {
                 }
             }
         }
-
+        System.out.println("(o) there are "+n1+" combinations 12, and "+n2+" combinations21");*/
         //System.out.println("Links 1 -> 2, count: "+c12);
         for (String p : mult12.keySet()) {
             Long m = mult12.get(p);
@@ -2314,7 +3326,7 @@ class evaluateSPARQLQuery {
         for (String p : ps) {
             HashMap<Integer,HashSet<Integer>> dsCss = predicateIndex.get(p);
             if (dsCss == null) {
-                return intersection;
+                return new HashMap<Integer,HashSet<Integer>>();
             }
             if (intersection == null) {
                 intersection = new HashMap<Integer,HashSet<Integer>>();
@@ -2482,6 +3494,36 @@ class evaluateSPARQLQuery {
         return c;
     }
 
+    public static long computeCostS(Integer ds, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashSet<Integer> relevantCss, Set<String> ps, HashMap<String, Set<Triple>> map, boolean subjStar) {
+        Set<Triple> sq = new HashSet<Triple>();
+        for (String p : ps) {
+            sq.addAll(map.get(p));
+        }
+        double selCttes = getConstantSelectivity(sq, ds);
+        long cost = 0L;
+        for (Integer cs : relevantCss) {
+            long costTmp = css.get(cs).getFirst();
+            double sel = 1.0;
+              for (String p : ps) {
+               for (Triple t : map.get(p)) {
+                Node s = t.getSubject();
+                Node o = t.getObject();
+                boolean c = true;
+                if (subjStar) {
+                    c = includeMultiplicity && projectedVariables.contains(s) && (!distinct || projectedVariables.contains(o));
+                } else {
+                    c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
+                }
+                if (c) {
+                    sel = sel*(((double)css.get(cs).getSecond().get(p).getFirst())/costTmp);
+                }
+               }
+              }
+            cost += Math.round(Math.ceil(costTmp*sel));
+        }
+        return Math.round(Math.ceil(cost*selCttes));
+    }
+
     public static long computeCost(Integer ds, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashSet<Integer> relevantCss, Set<String> ps, HashMap<String, Triple> map, boolean subjStar) {
         Set<Triple> sq = new HashSet<Triple>();
         for (String p : ps) {
@@ -2489,17 +3531,10 @@ class evaluateSPARQLQuery {
         }
         double selCttes = getConstantSelectivity(sq, ds);
         long cost = 0L;
-        //System.out.println("map: "+map+". ps: "+ps);
         for (Integer cs : relevantCss) {
-            //System.out.println("cs: "+css.get(cs));
             long costTmp = css.get(cs).getFirst();
             double sel = 1.0;
-            //System.out.println("distinct: "+costTmp);
-            //double selTmp = 1.0;
-            // COMMENTED TO OMMIT CONSIDERING THE MULTIPLICITY
-            //if (includeMultiplicity) {
               for (String p : ps) {
-                //System.out.println("p: "+p);
                 Triple t = map.get(p);
                 Node s = t.getSubject();
                 Node o = t.getObject();
@@ -2510,34 +3545,33 @@ class evaluateSPARQLQuery {
                     c = includeMultiplicity && projectedVariables.contains(o) && (!distinct || projectedVariables.contains(s));
                 }
                 if (c) {
-                    // p_m css.get(cs).getSecond().get(p).getFirst()
-                    // p_d css.get(cs).getSecond().get(p).getSecond()
                     sel = sel*(((double)css.get(cs).getSecond().get(p).getFirst())/costTmp);
-                    //System.out.println(p+": "+css.get(cs).getSecond().get(p)); 
                 }
-                /*if (subjStar) {
-                    c = !o.isVariable();
-                } else {
-                    c = !s.isVariable();
-                }
-                if (c) {
-                    Integer p_m = css.get(cs).getSecond().get(p).getFirst();
-                    Integer p_d = css.get(cs).getSecond().get(p).getSecond();
-                    //System.out.println("p_m: "+p_m+". p_d: "+p_d);
-                    double tmp = 1.0/ css.get(cs).getSecond().get(p).getSecond();
-                    if (tmp < selTmp) {
-                        selTmp = tmp;
-                    }
-                }*/
               }
-            //}
-            //sel = sel * selTmp; // CONSIDER CONSTANTS
-            //System.out.println("costTmp: "+costTmp+". sel: "+sel);
             cost += Math.round(Math.ceil(costTmp*sel));
         }
-        //System.out.println("cost: "+cost);
-        //return cost;
         return Math.round(Math.ceil(cost*selCttes));
+    }
+
+    public static Tree<Pair<Integer,Triple>> convertToTreeS(LinkedList<String> orderedPs, HashMap<String, Set<Triple>> map, Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, boolean subjCenter) {
+        Tree<Pair<Integer,Triple>> sortedStar = null;
+        for (String p : orderedPs) {
+            if (map.containsKey(p)) {
+              for (Triple t : map.get(p)) {
+
+                Leaf<Pair<Integer,Triple>> leaf = new Leaf<Pair<Integer,Triple>>(new Pair<Integer,Triple>(ds, t));
+                if (sortedStar == null) {
+                    sortedStar = leaf;
+                } else {
+                    sortedStar = new Branch<Pair<Integer,Triple>>(sortedStar, leaf);
+                }
+                //sortedStar.add(t);
+              }
+            }
+        }
+        //System.out.println("sorted star before considering constants: "+sortedStar);
+        considerConstants(sortedStar, predicateIndex, subjCenter);
+        return sortedStar;
     }
 
     public static Tree<Pair<Integer,Triple>> convertToTree(LinkedList<String> orderedPs, HashMap<String, Triple> map, Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, boolean subjCenter) {
@@ -2562,7 +3596,7 @@ class evaluateSPARQLQuery {
 
     public static void considerConstants(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, boolean subjCenter) {
 
-        if (tree instanceof Leaf<?>) {
+        if ((tree == null) || tree instanceof Leaf<?>) {
             return;
         }
         Branch<Pair<Integer, Triple>> b = (Branch<Pair<Integer, Triple>>) tree;
@@ -2880,37 +3914,16 @@ class evaluateSPARQLQuery {
             }
         }
 
-        /* // stars by object, have to adjust the rest of the code before including these stars
-        HashMap<Node, HashSet<Triple>> byObject = new HashMap<Node, HashSet<Triple>>();
-        for (Triple t : ts) {
-            
-            Node o = t.getObject();
-            HashSet<Triple> ots = byObject.get(o);
-            if (ots==null) {
-                ots = new HashSet<Triple>();
-            }
-            ots.add(t);
-            byObject.put(o, ots);
-        }
-
-        for (Node o : byObject.keySet()) {
-            HashSet<Triple> starObj = byObject.get(o);
-            long card = cost(starObj, predicateIndex);
-            if (card <= budget) {
-                stars.add(starObj);
-                ts.removeAll(starObj);
-            }
-        }*/
         return stars;
     }
 
-    public static HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> readCPS(String file) {
-        HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>> cps = null;
+    public static HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> readCPS(String file) {
+        HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> cps = null;
         try {
             ObjectInputStream in = new ObjectInputStream(
                 new BufferedInputStream(new FileInputStream(file)));
 
-            cps = (HashMap<Integer, HashMap<Integer, HashMap<String, Integer>>>) in.readObject();
+            cps = (HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>) in.readObject();
         } catch (Exception e) {
             System.err.println("Problems reading file: "+file);
             e.printStackTrace();
