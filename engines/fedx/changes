@@ -1,0 +1,5 @@
+* Fix bug in used library (sesame) to use correct syntax when evaluating a service with values clauses
+* Use bound join for services too
+* Use same operators implementation for queries with services
+* Allow for activation/deactivation of optimizations
+* Measure planning time

@@ -1,0 +1,31 @@
+<project>
+        <path id="base.classpath">
+                <fileset dir="lib">
+                        <include name="**/*.jar" />
+                </fileset>
+                <pathelement location="build/classes/" />
+        </path>
+        <target name="clean">
+                <delete dir="bin"/>
+        </target>
+        <target name="compile" depends="clean">
+                <mkdir dir="bin"/>
+                <javac srcdir="src" classpathref="base.classpath" destdir="bin"  debug="on" optimize="on" fork="false" verbose="false" listfiles="false" includes="**/*.java">
+                        <compilerarg value="-Xlint" />
+                </javac>
+        </target>
+        <target name="jar" depends="compile">
+                <tstamp/>
+                <jar destfile="lib/splendid.jar" duplicate="fail" compress="true">
+                        <fileset dir="bin" includes="**/*.class" />
+                        <fileset dir="resources" includes="**/*" />
+                        <manifest>
+                                <attribute name="version" value="${global.version} (build ${global.buildID})" />
+                                <attribute name="date" value="${TODAY}" />
+                                <attribute name="build" value="${global.buildID}" />
+                        </manifest>
+                </jar>
+        </target>
+</project>
+
+
