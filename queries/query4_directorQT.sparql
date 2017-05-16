@@ -1,6 +1,0 @@
-SELECT DISTINCT * WHERE {
-  ?film <http://dbpedia.org/ontology/budget> ?b .
-  ?film <http://dbpedia.org/ontology/director> <http://dbpedia.org/resource/Quentin_Tarantino> .
-  ?movie <http://www.w3.org/2002/07/owl#sameAs> ?film .
-  ?movie <http://data.linkedmdb.org/resource/movie/sequel> ?s
-}

@@ -1,8 +1,0 @@
-SELECT DISTINCT * WHERE {
-    ?film <http://dbpedia.org/ontology/runtime> ?runtime .
-    ?film <http://dbpedia.org/ontology/director> ?director .
-    ?film <http://dbpedia.org/ontology/budget> ?budget .
-    ?director <http://dbpedia.org/ontology/birthDate> ?date .
-    ?director <http://dbpedia.org/ontology/activeYearsStartYear> ?sy .
-    ?director <http://xmlns.com/foaf/0.1/name> ?name
-}

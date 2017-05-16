@@ -1,5 +1,0 @@
-SELECT DISTINCT * WHERE {
-  ?f <http://data.linkedmdb.org/resource/movie/actor> ?a .
-  ?f <http://data.linkedmdb.org/resource/movie/director> ?d .
-  ?f <http://data.linkedmdb.org/resource/movie/genre> <http://data.linkedmdb.org/resource/film_genre/4> 
-}

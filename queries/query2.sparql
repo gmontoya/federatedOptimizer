@@ -1,5 +1,0 @@
-SELECT DISTINCT * WHERE {
-    ?director <http://dbpedia.org/ontology/birthDate> ?date .
-    ?director <http://dbpedia.org/ontology/activeYearsStartYear> ?sy .
-    ?director <http://xmlns.com/foaf/0.1/name> ?name
-}

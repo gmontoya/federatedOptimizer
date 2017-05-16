@@ -1,7 +1,0 @@
-SELECT DISTINCT ?s ?o WHERE {
-
-    ?s <http://example.org/predicate3> ?o .
-    ?s <http://example.org/predicate4> ?q .
-    ?o <http://example.org/predicate1> ?t .
-    ?o <http://example.org/predicate2> ?u
-}
