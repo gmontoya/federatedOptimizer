@@ -5,7 +5,7 @@ folder=/home/roott/queries/fedBench
 sed -i "s,optimize=.*,optimize=true," /home/roott/federatedOptimizer/lib/fedX3.1/config2
 cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
 #cp /home/roott/fedBenchFederationFuseki.ttl /home/roott/fedBenchFederation.ttl
-cold=true
+cold=false
 s=`seq 1 11`
 l=""
 n=10
@@ -31,7 +31,8 @@ done
 #done
 
 #l="LD3 LD11 CD3 CD7 LS3 LS4 LS5"
-#l="LD7 LD11 CD6 CD7 LS5"
+#l="CD4 CD5 LS3 LS4 LS5"
+#l="LS6"
 
 for query in ${l}; do
     f=0

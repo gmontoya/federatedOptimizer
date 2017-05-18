@@ -26,7 +26,7 @@ done
 #    l="${l} C${i}"
 #done
 
-#l="LD1"
+#l="LD5"
 
 for query in ${l}; do
     f=0

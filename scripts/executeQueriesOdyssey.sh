@@ -37,7 +37,7 @@ done
 #done
 
 #l="LD7 LD11 CD6 CD7 LS5"
-#l="CD6"
+#l="LD6 LD9 LS7"
 
 for query in ${l}; do
     f=0

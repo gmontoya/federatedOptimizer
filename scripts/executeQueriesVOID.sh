@@ -16,6 +16,8 @@ for i in ${s}; do
     l="${l} LD${i}"
 done
 
+#l="LD11"
+
 s=`seq 1 7`
 
 for i in ${s}; do
@@ -26,7 +28,7 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-#l="LD5"
+#l="LD6"
 for query in ${l}; do
     #cd /home/roott/federatedOptimizer/scripts
     #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
@@ -37,7 +39,7 @@ for query in ${l}; do
         if [ "$cold" = "true" ] && [ -f /home/roott/federatedOptimizer/lib/fedX3.1/cache.db ]; then
             rm /home/roott/federatedOptimizer/lib/fedX3.1/cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateSPARQLQueryVOID $fedBench/$query ${datasets} /home/roott/fedBenchData $newQueries/$query > outputFile 2>> timeFile
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateSPARQLQueryVOID $fedBench/$query ${datasets} /home/roott/fedBenchData $newQueries/$query > outputFile 2> timeFile
         x=`tail -n 1 timeFile`
         y=`echo ${x%% *}`
         x=`echo ${y%%.*}`

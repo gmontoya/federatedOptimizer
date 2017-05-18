@@ -28,32 +28,32 @@ class evaluateSPARQLQuery {
     // DatasetId --> Position, for data related to CS-Subj
     static HashMap<Integer, Integer> datasetsIdPosSubj = new HashMap<Integer,Integer>();
     // DatasetId --> Position, for data related to CS-Obj
-    static HashMap<Integer, Integer> datasetsIdPosObj = new HashMap<Integer,Integer>();
+    //static HashMap<Integer, Integer> datasetsIdPosObj = new HashMap<Integer,Integer>();
 
     // DatasetId --> DatasetId --> Position, for data related to CP between CS-Subjs
     static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosSubj = new HashMap<Integer, HashMap<Integer,Integer>>();
     // DatasetId --> DatasetId --> Position, for data related to CP between CS-Objs
-    static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosObj = new HashMap<Integer, HashMap<Integer,Integer>>();
+    //static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosObj = new HashMap<Integer, HashMap<Integer,Integer>>();
     // DatasetId --> DatasetId --> Position, for data related to CP between CS-Subj and CS-Obj
-    static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosSubjObj = new HashMap<Integer, HashMap<Integer,Integer>>();
+    //static HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPosSubjObj = new HashMap<Integer, HashMap<Integer,Integer>>();
 
     static Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>> cssSubj = new Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>>();
-    static Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>> cssObj = new Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>>();
+    //static Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>> cssObj = new Vector<HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>>>();
     static Vector<HashMap<Integer, Integer>> hcsSubj = new Vector<HashMap<Integer, Integer>>();
     static Vector<HashMap<Integer, Integer>> hcsObj = new Vector<HashMap<Integer, Integer>>();
     static Vector<HashMap<Integer, Set<String>>> additionalSetsSubj = new Vector<HashMap<Integer, Set<String>>>();
-    static Vector<HashMap<Integer, Set<String>>> additionalSetsObj = new Vector<HashMap<Integer, Set<String>>>();
+    //static Vector<HashMap<Integer, Set<String>>> additionalSetsObj = new Vector<HashMap<Integer, Set<String>>>();
     static Vector<HashMap<Integer, Integer>> costsSubj = new Vector<HashMap<Integer, Integer>>();
-    static Vector<HashMap<Integer, Integer>> costsObj = new Vector<HashMap<Integer, Integer>>();
+    //static Vector<HashMap<Integer, Integer>> costsObj = new Vector<HashMap<Integer, Integer>>();
     static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsSubj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
-    static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsObj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
-    static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsSubjObj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
+    //static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsObj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
+    //static Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>> cpsSubjObj = new Vector<HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>>>();
     static Vector<String> datasets = new Vector<String>();
     static Vector<String> endpoints = new Vector<String>();
     static HashSet<String> generalPredicates = new HashSet<String>();
     static String folder;
     static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexesSubj = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
-    static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexesObj = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
+    //static HashMap<Integer,HashMap<String, HashSet<Integer>>> predicateIndexesObj = new HashMap<Integer,HashMap<String, HashSet<Integer>>>();
     static boolean distinct;
     static List<Var> projectedVariables;
     static boolean includeMultiplicity;
@@ -62,16 +62,6 @@ class evaluateSPARQLQuery {
     static HashMap<String, HashMap<Integer, Pair<Integer, Pair<Integer, Integer>>>> propertyStats;
     static HashMap<String, HashMap<Integer, Integer>> classStats;
 
-/*
-    public static void collapse(Vector<Tree<Pair<Integer, Triple>> v) {
-        Tree<Pair<Integer, Triple> p = v.get(0);
-        for (int i = 1; i < v.size(); i++) {
-            Tree<Pair<Integer, Triple> p2 = v.get(i);
-            Tree<Pair<Integer, Triple> f = fusion(p, p2);
-            
-        }
-    }
-*/
     public static HashMap<Integer, Integer> getCostSubj(Integer ds) {
         Integer pos = datasetsIdPosSubj.get(ds);
         if (pos == null) {
@@ -81,14 +71,14 @@ class evaluateSPARQLQuery {
         return cost;
     }
 
-    public static HashMap<Integer, Integer> getCostObj(Integer ds) {
+    /*public static HashMap<Integer, Integer> getCostObj(Integer ds) {
         Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
             pos = loadFilesObj(ds);
         }
         HashMap<Integer, Integer> cost = costsObj.get(pos);
         return cost;
-    }
+    }*/
 
     public static HashMap<Integer, Set<String>> getAdditionalSetsSubj(Integer ds) {
         Integer pos = datasetsIdPosSubj.get(ds);
@@ -99,14 +89,14 @@ class evaluateSPARQLQuery {
         return ass;
     }
 
-    public static HashMap<Integer, Set<String>> getAdditionalSetsObj(Integer ds) {
+    /*public static HashMap<Integer, Set<String>> getAdditionalSetsObj(Integer ds) {
         Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
             pos = loadFilesObj(ds);
         }
         HashMap<Integer, Set<String>> ass = additionalSetsObj.get(pos);
         return ass;
-    }
+    }*/
 
     public static HashMap<Integer, Integer> getHCSubj(Integer ds) {
         Integer pos = datasetsIdPosSubj.get(ds);
@@ -117,14 +107,14 @@ class evaluateSPARQLQuery {
         return hc;
     }
 
-    public static HashMap<Integer, Integer> getHCObj(Integer ds) {
+    /*public static HashMap<Integer, Integer> getHCObj(Integer ds) {
         Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
             pos = loadFilesObj(ds);
         }
         HashMap<Integer, Integer> hc = hcsObj.get(pos);
         return hc;
-    }
+    }*/
 
     public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> getCSSSubj(Integer ds) {
         Integer pos = datasetsIdPosSubj.get(ds);
@@ -135,16 +125,15 @@ class evaluateSPARQLQuery {
         return cs;
     }
 
-    public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> getCSSObj(Integer ds) {
+    /*public static HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> getCSSObj(Integer ds) {
         Integer pos = datasetsIdPosObj.get(ds);
         if (pos == null) {
             pos = loadFilesObj(ds);
         }
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer,Integer>>>> cs = cssObj.get(pos);
         return cs;
-    }
+    }*/
 
-// HashMap<Integer, HashMap<Integer, Integer>> datasetsIdsPos
     public static HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> getCPSSubj(Integer ds1, Integer ds2) {
         boolean loaded = false;
         HashMap<Integer, Integer> ds2Pos = datasetsIdsPosSubj.get(ds1);
@@ -177,6 +166,7 @@ class evaluateSPARQLQuery {
         return c;
     }
 
+/*
     public static HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> getCPSSubjObj(Integer ds1, Integer ds2) {
         boolean loaded = false;
         HashMap<Integer, Integer> ds2Pos = datasetsIdsPosSubjObj.get(ds1);
@@ -239,7 +229,7 @@ class evaluateSPARQLQuery {
             cpsObj.add(pos, c);
         } 
         return c;
-    }
+    }*/
 
     public static int loadFilesSubj(Integer ds) {
         int pos = cssSubj.size();
@@ -259,7 +249,7 @@ class evaluateSPARQLQuery {
         costsSubj.add(pos, cost);
         return pos;
     }
-
+/*
     public static int loadFilesObj(Integer ds) {
         int pos = cssObj.size();
         datasetsIdPosObj.put(ds, pos);
@@ -277,7 +267,7 @@ class evaluateSPARQLQuery {
         HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
         costsObj.add(pos, cost);
         return pos;
-    }
+    }*/
 
     public static HashMap<String, HashSet<Integer>> getPredicateIndexSubj(Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         //System.out.println("getPredicateIndex for dataset "+ds);
@@ -302,7 +292,7 @@ class evaluateSPARQLQuery {
         }
         return predIndex;
     }
-
+/*
     public static HashMap<String, HashSet<Integer>> getPredicateIndexObj(Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         //System.out.println("getPredicateIndex for dataset "+ds);
         Integer pos = datasetsIdPosObj.get(ds);
@@ -325,25 +315,25 @@ class evaluateSPARQLQuery {
             predicateIndexesObj.put(pos, predIndex);
         }
         return predIndex;
-    }
+    }*/
 
     public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexesSubj(String folder, Vector<String> datasets) {
         return readPredicateIndexes(folder, datasets, "");
     }
-
+/*
     public static HashMap<String, HashMap<Integer,HashSet<Integer>>> readPredicateIndexesObj(String folder, Vector<String> datasets) {
         return readPredicateIndexes(folder, datasets, "_obj");
-    }
+    }*/
 
     public static void loadStatistics() {
 
         for (int ds1 = 0; ds1 < datasets.size(); ds1++) {
             loadFilesSubj(ds1);
-            loadFilesObj(ds1);
+            //loadFilesObj(ds1);
             for (int ds2 = 0; ds2 < datasets.size(); ds2++) {
-                HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> aux = getCPSSubjObj(ds1, ds2);
-                aux = getCPSSubj(ds1, ds2);
-                aux = getCPSObj(ds1, ds2);
+                //HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> aux = getCPSSubjObj(ds1, ds2);
+                HashMap<String, HashMap<Integer, HashMap<Integer, Integer>>> aux = getCPSSubj(ds1, ds2);
+                //aux = getCPSObj(ds1, ds2);
             }
         }
     }
@@ -473,7 +463,7 @@ class evaluateSPARQLQuery {
         loadStatistics();
         // Predicate --> DatasetId --> set of CSId
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj = readPredicateIndexesSubj(folder, datasets); 
-        HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj = readPredicateIndexesObj(folder, datasets); 
+        //HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj = readPredicateIndexesObj(folder, datasets); 
         //System.out.println("predicateIndexSubj size: "+predicateIndexSubj.size());
         //System.out.println("predicateIndexObj size: "+predicateIndexObj.size());
         Query query = QueryFactory.read(queryFile);
@@ -503,7 +493,7 @@ class evaluateSPARQLQuery {
             HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>> DPTable = new HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long, Long>>>();
             HashMap<HashSet<Node>, Pair<HashSet<Node>, HashSet<Node>>> log = new HashMap<HashSet<Node>, Pair<HashSet<Node>, HashSet<Node>>>();
             //t0 = System.currentTimeMillis();
-            Vector<HashSet<Triple>> stars = getStars(triples, budget, predicateIndexSubj, predicateIndexObj); //css, predicateIndex, cost);
+            Vector<HashSet<Triple>> stars = getStars(triples, budget, predicateIndexSubj/*, predicateIndexObj*/); //css, predicateIndex, cost);
             //t1 = System.currentTimeMillis();
             //System.out.println("getStars: "+(t1-t0));
             //t0 = System.currentTimeMillis();
@@ -563,7 +553,7 @@ class evaluateSPARQLQuery {
             //t0 = System.currentTimeMillis();
             //System.out.println("map: "+map);
             //System.out.println("DPTable before add.. :"+DPTable);
-            addRemainingTriples(DPTable, triples, predicateIndexSubj, predicateIndexObj, nodes, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
+            addRemainingTriples(DPTable, triples, predicateIndexSubj, /*predicateIndexObj,*/ nodes, map); //, css, cps, predicateIndex, triples, cost, map, hc, additionalSets);
             //t1 = System.currentTimeMillis();
             //System.out.println("addRemainingTriples: "+(t1-t0));
             //t0 = System.currentTimeMillis();
@@ -571,7 +561,7 @@ class evaluateSPARQLQuery {
             // may have to consider already intermediate results in the CP estimation for the cost
             HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer, Triple>>, Double>> selectivity = new HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer, Triple>>, Double>>();
             //HashMap<HashSet<Node>, Vector<Tree<Pair<Integer,Triple>>>> selectivity = new HashMap<HashSet<Node>, Double>();
-            estimateSelectivityCP(DPTable, predicateIndexSubj, predicateIndexObj, nodes, triples, map, selectivity, log); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
+            estimateSelectivityCP(DPTable, predicateIndexSubj, /*predicateIndexObj,*/ nodes, triples, map, selectivity, log); //css, cps, predicateIndex, triples, hc, additionalSets, cost);
             //t1 = System.currentTimeMillis();
             //System.out.println("estimateSelectivity: "+(t1-t0));
             //t0 = System.currentTimeMillis();
@@ -613,12 +603,12 @@ class evaluateSPARQLQuery {
             c = vcs.getCount();
             System.out.println("NumberServices="+c);
             System.out.println("Plan: "+newQuery);
-            System.exit(1);
+            //System.exit(1);
             //write(newQuery.toString(), fileName);
             //System.out.println("Done query " + queryId + ": planning="+t2+"ms");
             evaluate(newQuery.toString(), queryId, false);
         } else {
-            System.exit(1);
+            //System.exit(1);
             //System.out.println("Plan not found");
             evaluate(query.toString(), queryId, true);
         }
@@ -783,7 +773,7 @@ class evaluateSPARQLQuery {
         }
         return str;
     }
-
+/*
     public static String toString(Vector<Tree<Pair<Integer,Triple>>> plan) {
         String str = "";
         //if (plan.size()>1) {
@@ -806,7 +796,7 @@ class evaluateSPARQLQuery {
             str += " }";
         }
         return str;
-    }
+    }*/
 
     public static Node getCenter(Set<Triple> ts) {
         Node s = null;
@@ -1345,7 +1335,7 @@ class evaluateSPARQLQuery {
         return res;
     }
 
-    public static void addRemainingTriples(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Triple> triples, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
+    public static void addRemainingTriples(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashSet<Triple> triples, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, /*HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj,*/ HashSet<Node> nodes, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
 
         //System.out.println("ts: "+ts);
         //System.out.println("map: "+map);
@@ -1403,18 +1393,18 @@ class evaluateSPARQLQuery {
         return existsCSConnectionSubj(sq1) && existsCSConnectionSubj(sq2) && (existsCPConnectionAuxS(sq1, sq2) || existsCPConnectionAuxS(sq2, sq1));
     }
 
-    public static boolean existsCPConnectionSubjObj(Set<Triple> sq1, Set<Triple> sq2) {
+/*    public static boolean existsCPConnectionSubjObj(Set<Triple> sq1, Set<Triple> sq2) {
         //System.out.println("existsCSConnectionSubj(sq1): "+existsCSConnectionSubj(sq1));
         //System.out.println("existsCSConnectionObj(sq2): "+existsCSConnectionObj(sq2));
         //System.out.println("existsCPConnectionAuxSO(sq1, sq2): "+existsCPConnectionAuxSO(sq1, sq2));
         //System.out.println("existsCPConnectionAuxSO(sq2, sq1): "+existsCPConnectionAuxSO(sq2, sq1));
         return existsCSConnectionSubj(sq1) && existsCSConnectionObj(sq2) && existsCPConnectionAuxSO(sq1, sq2);
-    }
+    }*/
 
-    public static boolean existsCPConnectionObj(Set<Triple> sq1, Set<Triple> sq2) {
+/*    public static boolean existsCPConnectionObj(Set<Triple> sq1, Set<Triple> sq2) {
 
         return existsCSConnectionObj(sq1) && existsCSConnectionObj(sq2) && (existsCPConnectionAuxO(sq1, sq2) || existsCPConnectionAuxO(sq2, sq1));
-    }
+    }*/
 
     public static Set<String> getCPConnectionSubj(Set<Triple> sq1, Set<Triple> sq2) {
 
@@ -1431,7 +1421,7 @@ class evaluateSPARQLQuery {
         return set;
     }
 
-    public static Set<String> getCPConnectionSubjObj(Set<Triple> sq1, Set<Triple> sq2) {
+/*    public static Set<String> getCPConnectionSubjObj(Set<Triple> sq1, Set<Triple> sq2) {
 
         Set<String> set = new HashSet<String>();
         if (sq1.size() == 0 || sq2.size() == 0)
@@ -1451,9 +1441,9 @@ class evaluateSPARQLQuery {
             }
         }
         return set;
-    }
+    }*/
 
-    public static Set<String> getCPConnectionObj(Set<Triple> sq1, Set<Triple> sq2) {
+/*    public static Set<String> getCPConnectionObj(Set<Triple> sq1, Set<Triple> sq2) {
 
         Set<String> set = new HashSet<String>();
         if (sq1.size() == 0 || sq2.size() == 0)
@@ -1466,7 +1456,7 @@ class evaluateSPARQLQuery {
             }
         }
         return set;
-    } 
+    } */
 
     public static boolean existsCPConnectionAuxS(Set<Triple> sq1, Set<Triple> sq2) {
 
@@ -1478,7 +1468,7 @@ class evaluateSPARQLQuery {
         }
         return e;
     }
-
+/*
     public static boolean existsCPConnectionAuxO(Set<Triple> sq1, Set<Triple> sq2) {
 
         boolean e = false;
@@ -1500,7 +1490,7 @@ class evaluateSPARQLQuery {
         }
         return e;
     }
-
+*/
     public static boolean existsCSConnectionSubj(Set<Triple> sq) {
         boolean e = true;
         Iterator<Triple> it = sq.iterator(); 
@@ -1513,7 +1503,7 @@ class evaluateSPARQLQuery {
         return e;
     }
 
-    public static boolean existsCSConnectionObj(Set<Triple> sq) {
+/*    public static boolean existsCSConnectionObj(Set<Triple> sq) {
         boolean e = true;
         Iterator<Triple> it = sq.iterator();
         Node o = it.next().getObject();
@@ -1523,7 +1513,7 @@ class evaluateSPARQLQuery {
             e = e && (o.equals(oTmp));
         }
         return e;
-    }
+    }*/
 
     public static void addSelectivity(HashSet<Node> keyS, HashSet<Node> keyO, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<HashSet<Node>, Double> selectivity) {
 
@@ -1565,7 +1555,7 @@ class evaluateSPARQLQuery {
         return card + costTransfer(DPTable, log, set);
     }*/
 
-    public static void estimateSelectivityCP(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashSet<Node> nodes, HashSet<Triple> triples, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer, Triple>>, Double>> selectivity, HashMap<HashSet<Node>, Pair<HashSet<Node>, HashSet<Node>>> log) {
+    public static void estimateSelectivityCP(HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, /*HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj,*/ HashSet<Node> nodes, HashSet<Triple> triples, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map, HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer, Triple>>, Double>> selectivity, HashMap<HashSet<Node>, Pair<HashSet<Node>, HashSet<Node>>> log) {
         //long t0 = System.currentTimeMillis();
         HashMap<Triple, Triple> renamed = new HashMap<Triple, Triple>();
         HashSet<Triple> newTs = renameBack(new HashSet<Triple>(triples), map, renamed);
@@ -2135,7 +2125,7 @@ class evaluateSPARQLQuery {
         }
         return res;
     }
-
+/*
     public static long getCardinalityCPObj(Set<Triple> sq1, HashMap<String, Set<Triple>> map1, Set<String> ps12, Set<Triple> sq2, HashMap<String, Set<Triple>> map2, HashMap<Integer,HashSet<Integer>> relevantCSTs1, HashMap<Integer,HashSet<Integer>> relevantCSTs2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<Integer,HashMap<Integer, Long>> usefulCost) {
 
         Set<String> ps1 = map1.keySet();
@@ -2201,14 +2191,14 @@ class evaluateSPARQLQuery {
                         }
                     }
                 }
-/*                if (!added) {
-                    HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> aux1 = useful.get(ds1);
-                    if (aux1 == null) {
-                        aux1 = new HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>();
-                    }
-                    aux1.put(ds2, null);
-                    useful.put(ds1, aux1);
-                }*/
+//                if (!added) {
+//                    HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> aux1 = useful.get(ds1);
+//                    if (aux1 == null) {
+//                        aux1 = new HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>();
+//                    }
+//                    aux1.put(ds2, null);
+//                    useful.put(ds1, aux1);
+//                }
                 long tmpCost = Math.round(Math.ceil(card*selCttes));
                 if (tmpCost > 0) {
                     HashMap<Integer, Long> aux2 = usefulCost.get(ds1);
@@ -2229,8 +2219,8 @@ class evaluateSPARQLQuery {
             }
         }
         return c;
-    }
-
+    }*/
+/*
     public static long getCardinalityCPSubjObj(Set<Triple> sq1, HashMap<String, Set<Triple>> map1, Set<String> ps12, Set<Triple> sq2, HashMap<String, Set<Triple>> map2, HashMap<Integer,HashSet<Integer>> relevantCSTs1, HashMap<Integer,HashSet<Integer>> relevantCSTs2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<Integer,HashMap<Integer, Long>> usefulCost) {
 
         Set<String> ps1 = map1.keySet();
@@ -2304,7 +2294,7 @@ class evaluateSPARQLQuery {
                     aux1.put(ds2, null);
                     useful.put(ds1, aux1);
                 }*/
-                long tmpCost = Math.round(Math.ceil(card*selCttes));
+  /*              long tmpCost = Math.round(Math.ceil(card*selCttes));
                 if (tmpCost > 0) {
                     HashMap<Integer, Long> aux2 = usefulCost.get(ds1);
                     if (aux2 == null) {
@@ -2324,7 +2314,7 @@ class evaluateSPARQLQuery {
             }
         }
         return c;
-    }
+    }*/
 
 
     public static Integer getStartCS(Set<String> ps, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashMap<String, HashSet<Integer>> predicateIndex, HashMap<Integer, Integer> hc, HashMap<Integer, Set<String>> additionalSets, HashMap<Integer, Integer> cost) {
@@ -2438,7 +2428,7 @@ class evaluateSPARQLQuery {
         return sortedStar;
     }
 
-    public static Vector<Tree<Pair<Integer,Triple>>> makeCPTreeObj(HashMap<String, Set<Triple>> ps1, HashMap<String, Set<Triple>> ps2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<Integer,HashMap<Integer, Long>> usefulCost, Pair<HashSet<Node>, HashSet<Node>> pairKey, HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer,Triple>>, Double>> selectivity, Set<String> linkPs, HashMap<Integer, Tree<Pair<Integer,Triple>>> plansSet1, HashMap<Integer, Tree<Pair<Integer,Triple>>> plansSet2) {
+/*    public static Vector<Tree<Pair<Integer,Triple>>> makeCPTreeObj(HashMap<String, Set<Triple>> ps1, HashMap<String, Set<Triple>> ps2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<Integer,HashMap<Integer, Long>> usefulCost, Pair<HashSet<Node>, HashSet<Node>> pairKey, HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer,Triple>>, Double>> selectivity, Set<String> linkPs, HashMap<Integer, Tree<Pair<Integer,Triple>>> plansSet1, HashMap<Integer, Tree<Pair<Integer,Triple>>> plansSet2) {
         Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
         for (Integer ds1 : useful.keySet()) {
             HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>> ds2Pair = useful.get(ds1);
@@ -2482,11 +2472,11 @@ class evaluateSPARQLQuery {
                 if (cardCP != null && cardCP > 0) {
                     nT = makeTree(ds1Aux, plan1, ds2Aux, plan2);
                 }
-                /*if (c1 <= c2) {
-                    nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
-                } else {
-                    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
-                }*/
+                //if (c1 <= c2) {
+                //    nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
+                //} else {
+                //    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
+                //}
                 double sel = 0.0;
                 if (nT != null) {
                     nT.setCard(cardCP);
@@ -2513,8 +2503,8 @@ class evaluateSPARQLQuery {
             }
         }
         return res;
-    }
-
+    }*/
+/*
     public static Vector<Tree<Pair<Integer,Triple>>> makeCPTreeSubjObj(HashMap<String, Set<Triple>> ps1, HashMap<String, Set<Triple>> ps2, HashMap<Integer,HashMap<Integer, Pair<HashSet<Integer>, HashSet<Integer>>>> useful, HashMap<Integer,HashMap<Integer, Long>> usefulCost, Pair<HashSet<Node>, HashSet<Node>> pairKey, HashMap<Pair<Integer, Triple>, HashMap<HashSet<Pair<Integer,Triple>>, Double>> selectivity, Set<String> linkPs, HashMap<Integer, Tree<Pair<Integer,Triple>>> plansSet1, HashMap<Integer, Tree<Pair<Integer,Triple>>> plansSet2) {
         Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
         for (Integer ds1 : useful.keySet()) {
@@ -2560,11 +2550,11 @@ class evaluateSPARQLQuery {
                 if (cardCP != null && cardCP > 0) {
                     nT = makeTree(ds1Aux, plan1, ds2Aux, plan2);
                 }
-                /*if (c1 <= c2) {
-                    nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
-                } else {
-                    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
-                }*/
+                //if (c1 <= c2) {
+                //    nT = new Branch<Pair<Integer,Triple>>(plan1, plan2);
+                //} else {
+                //    nT = new Branch<Pair<Integer,Triple>>(plan2, plan1);
+                //}
                 double sel = 0.0;
                 if (nT != null) {
                     nT.setCard(cardCP);
@@ -2591,9 +2581,9 @@ class evaluateSPARQLQuery {
             }
         }
         return res;
-    }
+    }*/
 
-    public static Tree<Pair<Integer,Triple>> makeCSTreeObj(HashMap<String, Set<Triple>> ps, Integer ds, HashSet<Integer> set, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+/*    public static Tree<Pair<Integer,Triple>> makeCSTreeObj(HashMap<String, Set<Triple>> ps, Integer ds, HashSet<Integer> set, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
 
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css = getCSSObj(ds);
         HashMap<Integer, Integer> hc = getHCObj(ds);
@@ -2636,7 +2626,7 @@ class evaluateSPARQLQuery {
         }
         Tree<Pair<Integer,Triple>> sortedStar = convertToTreeS(order, ps, ds, predicateIndex, false);
         return sortedStar;
-    }
+    }*/
 
     // precondition: triples in sq1 share the same subject
     public static void addCSSubj(HashSet<Triple> ts1, HashSet<Triple> sq1, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
@@ -2654,7 +2644,7 @@ class evaluateSPARQLQuery {
     }
 
     // precondition: triples in sq1 share the same object
-    public static void addCSObj(HashSet<Triple> ts1, HashSet<Triple> sq1, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+/*    public static void addCSObj(HashSet<Triple> ts1, HashSet<Triple> sq1, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Triple>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
         Vector<Tree<Pair<Integer,Triple>>> p = getStarJoinOrderObj(ts1, predicateIndex); 
         if (p.size() == 0) {
@@ -2666,7 +2656,7 @@ class evaluateSPARQLQuery {
         if (data == null || data.getSecond().getFirst()>c) {
             DPTable.put(newEntry, new Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>(p, new Pair<Long, Long>(c,c))); //0L)));
         }
-    }
+    }*/
 
     public static boolean addCheapestCPSubj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
@@ -2694,7 +2684,7 @@ class evaluateSPARQLQuery {
         return false;
     }
 
-    public static boolean addCheapestCPSubjObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+/*    public static boolean addCheapestCPSubjObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
         Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeSubjObj(ts1, ts2, predicateIndexSubj, predicateIndexObj); 
         long cost = costTree.getFirst();
@@ -2717,9 +2707,9 @@ class evaluateSPARQLQuery {
             return true;
         }
         return false;
-    }
+    }*/
 
-    public static boolean addCheapestCPObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
+/*    public static boolean addCheapestCPObj(Vector<Tree<Pair<Integer,Triple>>> ts1, Vector<Tree<Pair<Integer,Triple>>> ts2, HashSet<Node> sq1, HashSet<Node> sq2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex, HashMap<HashSet<Node>, Pair<Vector<Tree<Pair<Integer,Triple>>>, Pair<Long,Long>>> DPTable) {
 
         Pair<Long,Vector<Tree<Pair<Integer,Triple>>>> costTree = getCostCPTreeObj(ts1, ts2, predicateIndex); 
         long cost = costTree.getFirst();
@@ -2742,7 +2732,7 @@ class evaluateSPARQLQuery {
             return true;
         }
         return false;
-    }
+    }*/
 
     public static Vector<Tree<Pair<Integer,Triple>>> makeTreeBasic(Vector<Tree<Pair<Integer,Triple>>> vTreeL, Vector<Tree<Pair<Integer,Triple>>> vTreeR) {
         //System.out.println("Make tree out of "+vTreeL+" and "+vTreeR);
@@ -2979,7 +2969,7 @@ class evaluateSPARQLQuery {
         return new Pair<Long, Vector<Tree<Pair<Integer,Triple>>>>(cost, res);
     }
 
-    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTreeSubjObj(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj) {
+/*    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTreeSubjObj(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj) {
         Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
         long cost = 0L;
         for (Tree<Pair<Integer,Triple>> leftTree : vLT) {
@@ -3018,9 +3008,9 @@ class evaluateSPARQLQuery {
             }
         }
         return new Pair<Long, Vector<Tree<Pair<Integer,Triple>>>>(cost, res);
-    }
+    }*/
 
-    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTreeObj(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+/*    public static Pair<Long, Vector<Tree<Pair<Integer,Triple>>>> getCostCPTreeObj(Vector<Tree<Pair<Integer,Triple>>> vLT, Vector<Tree<Pair<Integer,Triple>>> vRT, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         Vector<Tree<Pair<Integer,Triple>>> res = new Vector<Tree<Pair<Integer,Triple>>>();
         long cost = 0L;
         for (Tree<Pair<Integer,Triple>> leftTree : vLT) {
@@ -3059,7 +3049,7 @@ class evaluateSPARQLQuery {
             }
         }
         return new Pair<Long, Vector<Tree<Pair<Integer,Triple>>>>(cost, res);
-    }
+    }*/
 
     public static Long getMultiplicitySubj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
 
@@ -3124,7 +3114,7 @@ class evaluateSPARQLQuery {
         }
         return Math.round(Math.ceil(m*sel));
     }
-
+/*
     public static Long getMultiplicitySubjObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
 
         double sel = 1.0;
@@ -3156,8 +3146,8 @@ class evaluateSPARQLQuery {
             }
         }
         return Math.round(Math.ceil(m*sel));
-    }
-
+    }*/
+/*
     public static Long getMultiplicitySubjObjS(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Set<Triple>> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Set<Triple>> map2) {
 
         double sel = 1.0;
@@ -3191,9 +3181,9 @@ class evaluateSPARQLQuery {
           }
         }
         return Math.round(Math.ceil(m*sel));
-    }
+    }*/
 
-    public static Long getMultiplicityObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
+/*    public static Long getMultiplicityObj(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Triple> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Triple> map2) {
 
         double sel = 1.0;
         Integer count = cPs.getFirst();
@@ -3221,8 +3211,8 @@ class evaluateSPARQLQuery {
                 }
         }
         return Math.round(Math.ceil(m*sel));
-    }
-
+    }*/
+/*
     public static Long getMultiplicityObjS(Integer m, String p,  Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs, Set<String> ps1, HashMap<String, Set<Triple>> map1, Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs2, Set<String> ps2, HashMap<String, Set<Triple>> map2) {
 
         double sel = 1.0;
@@ -3253,7 +3243,7 @@ class evaluateSPARQLQuery {
             }
         }
         return Math.round(Math.ceil(m*sel));
-    }
+    }*/
 
     public static double getConstantSelectivity(Set<Triple> sq1, Integer ds1) {
 
@@ -3527,7 +3517,7 @@ class evaluateSPARQLQuery {
          
         return Math.round(Math.ceil(c*selCttes));
     }
-
+/*
     public static long getCostCPSubjObj(Set<Triple> sq1, Integer ds1, Set<Triple> sq2, Integer ds2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndexObj) { 
 
         double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
@@ -3584,7 +3574,7 @@ class evaluateSPARQLQuery {
                     mult12.put(p, m1+m2);
                 }
             }
-        }
+        }*/
 /*
         for (Integer cs1 : css1) {
             Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSSubj(ds1).get(cs1);
@@ -3621,14 +3611,14 @@ class evaluateSPARQLQuery {
         }
         System.out.println("(so) there are "+n1+" combinations 12");*/
         //System.out.println("Links 1 -> 2, count: "+c12);
-        for (String p : mult12.keySet()) {
+/*        for (String p : mult12.keySet()) {
             Long m = mult12.get(p);
             c += m;
         }
 
         return Math.round(Math.ceil(c*selCttes));
-    }
-
+    }*/
+/*
     public static long getCostCPObj(Set<Triple> sq1, Integer ds1, Set<Triple> sq2, Integer ds2, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
 
         double selCttes = getConstantSelectivity(sq1, ds1, sq2, ds2);
@@ -3712,7 +3702,7 @@ class evaluateSPARQLQuery {
                     mult21.put(p, m1+m2);
                 }
             }
-        }
+        }*/
 /*
         for (Integer cs1 : css1) {
             Pair<Integer, HashMap<String, Pair<Integer, Integer>>> cPs = getCSSObj(ds1).get(cs1);
@@ -3775,7 +3765,7 @@ class evaluateSPARQLQuery {
         }
         System.out.println("(o) there are "+n1+" combinations 12, and "+n2+" combinations21");*/
         //System.out.println("Links 1 -> 2, count: "+c12);
-        for (String p : mult12.keySet()) {
+/*        for (String p : mult12.keySet()) {
             Long m = mult12.get(p);
             c += m;
         }
@@ -3785,7 +3775,8 @@ class evaluateSPARQLQuery {
             c += m;
         }
         return Math.round(Math.ceil(c*selCttes));
-    }
+    }*/
+
     public static HashSet<Integer> computeRelevantCS(Set<String> ps, Integer ds, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
 
         HashSet<Integer> intersection = null;
@@ -3854,6 +3845,7 @@ class evaluateSPARQLQuery {
         }
         return intersection;
     }
+
     // precondition: triples in vTree share the same subject and all triples in each tree are evaluated at the same source
     public static long cssCostTreeSubj(Vector<Tree<Pair<Integer,Triple>>> vTree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         long cost = 0L;
@@ -3881,7 +3873,7 @@ class evaluateSPARQLQuery {
     }
 
     // precondition: triples in vTree share the same object and all triples in each tree are evaluated at the same source
-    public static long cssCostTreeObj(Vector<Tree<Pair<Integer,Triple>>> vTree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+/*    public static long cssCostTreeObj(Vector<Tree<Pair<Integer,Triple>>> vTree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         long cost = 0L;
         for (Tree<Pair<Integer,Triple>> tmpTree : vTree) {
             HashMap<String, Triple> map = new HashMap<String, Triple>();
@@ -3890,9 +3882,9 @@ class evaluateSPARQLQuery {
             Integer key = produceStarJoinOrdering.getIKey(ps);        
             long c = 0L;
             HashMap<Integer, Integer> costHM = getCostObj(ds);
-            /*if (costHM.containsKey(key)) {
+            //if (costHM.containsKey(key)) {
                 c += costHM.get(key);
-            } else {*/
+            //} else {
                 HashSet<Integer> relevantCss = computeRelevantCS(ps, ds, predicateIndex);
                 c += computeCost(ds, getCSSObj(ds), relevantCss, ps, map, false);
                 tmpTree.setCard(c);
@@ -3902,6 +3894,7 @@ class evaluateSPARQLQuery {
         }
         return cost;
     }
+*/
 
     // precondition: triples in tree share the same subject and all triples in each tree are evaluated at the same source
     public static long cssCostTreeSubj(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
@@ -3925,7 +3918,7 @@ class evaluateSPARQLQuery {
     }
 
     // precondition: triples in tree share the same object and all triples in each tree are evaluated at the same source
-    public static long cssCostTreeObj(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+/*    public static long cssCostTreeObj(Tree<Pair<Integer,Triple>> tree, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
         long cost = 0L;
             HashMap<String, Triple> map = new HashMap<String, Triple>();
             Set<String> ps = obtainBoundPredicates(tree, map);
@@ -3933,9 +3926,9 @@ class evaluateSPARQLQuery {
             Integer key = produceStarJoinOrdering.getIKey(ps);        
             long c = 0L;
             HashMap<Integer, Integer> costHM = getCostObj(ds);
-            /*if (costHM.containsKey(key)) {
-                c += costHM.get(key);
-            } else {*/
+            //if (costHM.containsKey(key)) {
+            //    c += costHM.get(key);
+            //} else {
                 HashSet<Integer> relevantCss = computeRelevantCS(ps, ds, predicateIndex);
                 c += computeCost(ds, getCSSObj(ds), relevantCss, ps, map, false);
                 tree.setCard(c);
@@ -3943,7 +3936,7 @@ class evaluateSPARQLQuery {
             //}
             cost += c;
         return cost;
-    }
+    }*/
 
     public static long costSubj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
 
@@ -3970,7 +3963,7 @@ class evaluateSPARQLQuery {
         return c;
     }
 
-    public static long costObj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
+/*    public static long costObj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) {
 
         HashSet<String> ps = new HashSet<String>();
         HashMap<String, Triple> map = new HashMap<String, Triple>();
@@ -3993,7 +3986,7 @@ class evaluateSPARQLQuery {
             c += computeCost(ds, getCSSObj(ds), dsCss.get(ds), ps, map, false);
         }
         return c;
-    }
+    }*/
 
     public static long computeCostS(Integer ds, HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> css, HashSet<Integer> relevantCss, Set<String> ps, HashMap<String, Set<Triple>> map, boolean subjStar) {
         Set<Triple> sq = new HashSet<Triple>();
@@ -4118,9 +4111,9 @@ class evaluateSPARQLQuery {
             if (t.getSubject().isVariable()) {
                 return;
             }
-            cLeft = cssCostTreeObj(lTree, predicateIndex);
+            /*cLeft = cssCostTreeObj(lTree, predicateIndex);
             cResult = cssCostTreeObj(b, predicateIndex);
-            cRight = cssCostTreeObj(rTree, predicateIndex);
+            cRight = cssCostTreeObj(rTree, predicateIndex);*/
         }
         if (cRight <= cLeft + cResult) {
             if (lTree instanceof Leaf<?>) {
@@ -4189,6 +4182,7 @@ class evaluateSPARQLQuery {
         return vTree;
     }
 
+/*
     public static Vector<Tree<Pair<Integer,Triple>>> getStarJoinOrderObj(Set<Triple> ts, HashMap<String, HashMap<Integer,HashSet<Integer>>> predicateIndex) { 
         HashSet<String> ps = new HashSet<String>();
         HashMap<String, Set<Triple>> map = new HashMap<String, Set<Triple>>();
@@ -4240,6 +4234,7 @@ class evaluateSPARQLQuery {
         }
         return vTree;
     }
+*/
 
     public static Node update(HashSet<Triple> triples, HashSet<Triple> star, int i, HashMap<Node, Vector<Tree<Pair<Integer,Triple>>>> map) {
 
@@ -4366,7 +4361,7 @@ class evaluateSPARQLQuery {
         return nv;
     }
 
-    public static Vector<HashSet<Triple>> getStars(HashSet<Triple> triples, long budget, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndexSubj, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndexObj) {
+    public static Vector<HashSet<Triple>> getStars(HashSet<Triple> triples, long budget, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndexSubj/*, HashMap<String, HashMap<Integer,HashSet<Integer>>>  predicateIndexObj*/) {
 
         Vector<HashSet<Triple>> stars = new Vector<HashSet<Triple>>();
         List<Triple> ts = new LinkedList<Triple>(triples);
@@ -4393,7 +4388,7 @@ class evaluateSPARQLQuery {
                 ts.removeAll(starSubj);
             }
         }
-        HashMap<Node, HashSet<Triple>> byObject = new HashMap<Node, HashSet<Triple>>();
+/*        HashMap<Node, HashSet<Triple>> byObject = new HashMap<Node, HashSet<Triple>>();
         for (Triple t : ts) {            
             Node o = t.getObject();
             HashSet<Triple> ots = byObject.get(o);
@@ -4423,7 +4418,7 @@ class evaluateSPARQLQuery {
                     ts.removeAll(starObj);
                 }
             }
-        }
+        }*/
 
         return stars;
     }

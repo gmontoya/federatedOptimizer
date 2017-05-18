@@ -4,7 +4,7 @@ folder=/home/roott/queries/fedBench
 #folder=/home/roott/queries/complexQueries
 #sed -i "s,optimize=.*,optimize=true," /home/roott/federatedOptimizer/lib/fedX3.1/config2
 cp /home/roott/fedBenchFederationProxy.ttl /home/roott/fedBenchFederation.ttl
-cold=true
+cold=false
 s=`seq 1 11`
 l=""
 n=1
@@ -38,8 +38,8 @@ for query in ${l}; do
         tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
         sleep 2s
         cd /home/roott/FedX-HiBISCus
-        if [ -f /home/roott/FedX-HiBISCus/summaries*?/* ]; then
-            rm /home/roott/FedX-HiBISCus/summaries*?/*
+        if [ -f "/home/roott/FedX-HiBISCus/summaries*?/*" ]; then
+            rm "/home/roott/FedX-HiBISCus/summaries*?/*"
         fi
         if [ "$cold" = "true" ] && [ -f cache.db ]; then
             rm cache.db

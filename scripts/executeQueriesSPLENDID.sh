@@ -19,7 +19,7 @@ done
 for i in ${s}; do
     l="${l} LS${i}"
 done
-#l="LD3 LD7 LD11 LS3 LS5 LS7"
+#l="CD7 LS5"
 
 for query in ${l}; do
     f=0

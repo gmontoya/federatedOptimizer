@@ -4,11 +4,11 @@ folder=/home/roott/queries/fedBench
 #folder=/home/roott/queries/complexQueries
 sed -i "s,optimize=.*,optimize=true," /home/roott/federatedOptimizer/lib/fedX3.1/config2
 cp /home/roott/fedBenchFederationProxy.ttl /home/roott/fedBenchFederation.ttl
-cold=true
+cold=false
 s=`seq 1 11`
 l=""
 n=1
-w=600
+w=1800
 
 for i in ${s}; do
     l="${l} LD${i}"
@@ -30,7 +30,7 @@ done
 #    l="${l} C${i}"
 #done
 
-l="LS7"
+#l="LS7"
 
 for query in ${l}; do
     f=0

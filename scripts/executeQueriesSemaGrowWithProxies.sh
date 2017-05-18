@@ -26,7 +26,7 @@ done
 #    l="${l} C${i}"
 #done
 
-l="LD3"
+#l="LS7"
 
 for query in ${l}; do
     f=0
