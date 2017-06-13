@@ -88,7 +88,7 @@ class obtainRadixOneBasedIndex {
         //System.out.println("io:");
         //System.out.println(io);
     }
-
+/*
     public static QTreeOne.QTreeOneLeaf checkIfObject(RadixTreeOne rt, String p, Integer cs1, String s, String value) {
 
         RadixTreeOne.LeafRadix lr =  rt.getLeafRadix(s, rt.root);
@@ -111,7 +111,7 @@ class obtainRadixOneBasedIndex {
             }
         }
         return null;
-    }
+    }*/
 /*
     public static void writeObjectIndexText(HashMap<Integer, HashMap<String,QTree>> index, String fileName) {
 
