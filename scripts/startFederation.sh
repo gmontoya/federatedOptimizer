@@ -2,6 +2,7 @@
 
 datasets="ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"
 virtuosoPath=/home/roott/virtuosoInstallation
+#_6_1_7
 export PATH=.:${virtuosoPath}/bin:$PATH
 export codehome=/home/roott/federatedOptimizer
 

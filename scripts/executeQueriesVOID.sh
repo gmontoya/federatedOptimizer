@@ -28,7 +28,7 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-#l="LD6"
+#l="LD1"
 for query in ${l}; do
     #cd /home/roott/federatedOptimizer/scripts
     #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`

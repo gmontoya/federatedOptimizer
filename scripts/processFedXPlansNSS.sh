@@ -1,19 +1,23 @@
 #!/bin/bash
 
 plans=$1
-n=-1
+n=0
+inSSQ=false
+inEG=false
+inES=false
 
 while read line; do
     line=`echo $line`
-    if [ "${line:0:4}" = "FedX" ]; then
-        if [ "$n" -ge "0" ]; then
-            echo "$n"
-        fi
-        n=0
-        inSSQ=false
-        inEG=false
-        inES=false
-    elif [ "${line:0:17}" = "SingleSourceQuery" ]; then
+    #if [ "${line:0:4}" = "FedX" ]; then
+    #    if [ "$n" -ge "0" ]; then
+    #        echo "$n"
+    #    fi
+    #    n=0
+    #    inSSQ=false
+    #    inEG=false
+    #    inES=false
+    #el
+    if [ "${line:0:17}" = "SingleSourceQuery" ]; then
         #n=1
         inSSQ=true
     elif [ "${line:0:14}" = "ExclusiveGroup" ]; then

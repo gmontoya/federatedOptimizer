@@ -1,14 +1,16 @@
 #!/bin/bash
 
 folder=/home/roott/queries/fedBench
+#folder=/home/roott/tmp/views/size7
 #folder=/home/roott/queries/complexQueries
 sed -i "s,optimize=.*,optimize=true," /home/roott/federatedOptimizer/lib/fedX3.1/config2
-cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
+#cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
+cp /home/roott/fedBenchLocalFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
 #cp /home/roott/fedBenchFederationFuseki.ttl /home/roott/fedBenchFederation.ttl
-cold=false
+cold=true
 s=`seq 1 11`
 l=""
-n=10
+n=1
 w=1800
 for i in ${s}; do
     l="${l} LD${i}"
@@ -24,15 +26,24 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-#s=`seq 1 10`
+l=""
+s=`seq 1 2`
 
-#for i in ${s}; do
-#    l="${l} C${i}"
-#done
+for i in ${s}; do
+    l="${l} C${i}"
+done
 
 #l="LD3 LD11 CD3 CD7 LS3 LS4 LS5"
 #l="CD4 CD5 LS3 LS4 LS5"
-#l="LS6"
+#l="LS3"
+
+l="LS2"
+
+#s=`seq 0 4`
+#s="4"
+#for i in ${s}; do
+#    l="${l} fragment${i}"
+#done
 
 for query in ${l}; do
     f=0

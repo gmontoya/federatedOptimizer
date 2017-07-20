@@ -37,7 +37,9 @@ class produceStarJoinOrdering {
             }
         }
         while ((sPreds != null) && hc.containsKey(s)) {
+            
             Integer cheapestSS = hc.get(s);
+            //System.out.println("s: "+s+". cheapestSS: "+cheapestSS);
             Set<String> cPreds = null;
             if (css.containsKey(cheapestSS)) {
                 cPreds = css.get(cheapestSS).getSecond().keySet();

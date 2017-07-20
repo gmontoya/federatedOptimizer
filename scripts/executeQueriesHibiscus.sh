@@ -1,12 +1,13 @@
 #!/bin/bash
 
 folder=/home/roott/queries/fedBench
-#folder=/home/roott/queries/complexQueries
+folder=/home/roott/tmp/views/size7
+folder=/home/roott/queries/complexQueries
 #cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
 cold=true
 s=`seq 1 11`
 l=""
-n=10
+n=1
 w=1800
 for i in ${s}; do
     l="${l} LD${i}"
@@ -22,14 +23,24 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-#s=`seq 1 10`
+l=""
+s=`seq 1 10`
+
+for i in ${s}; do
+    l="${l} C${i}"
+done
+
+
+#l="LS7"
+#l="6D7 LD11 CD6 CD7 LS5"
+
+#l=""
+
+#s=`seq 0 4`
 
 #for i in ${s}; do
-#    l="${l} C${i}"
+#    l="${l} fragment${i}"
 #done
-
-#l="LS6"
-#l="6D7 LD11 CD6 CD7 LS5"
 
 for query in ${l}; do
     f=0
@@ -72,7 +83,7 @@ for query in ${l}; do
         /home/roott/federatedOptimizer/scripts/processFedXPlansNSQ.sh outputFile > xxx
         ns=`cat xxx`
         rm xxx
-        echo "${query} ${nss} ${ns} ${s} ${t} ${nr}" >> outputExecuteQueriesHibiscusColdCacheA
+        echo "${query} ${nss} ${ns} ${s} ${t} ${nr}" >> outputExecuteQueriesHibiscusColdCacheB
 
         if [ "$f" -ge "2" ]; then
             break
@@ -117,7 +128,7 @@ for query in ${l}; do
         /home/roott/federatedOptimizer/scripts/processFedXPlansNSQ.sh outputFile > xxx
         ns=`cat xxx`
         rm xxx
-        echo "${query} ${nss} ${ns} ${s} ${t} ${nr}" >> outputExecuteQueriesHibiscusWarmCacheA
+        echo "${query} ${nss} ${ns} ${s} ${t} ${nr}" >> outputExecuteQueriesHibiscusWarmCacheB
 
         if [ "$f" -ge "2" ]; then
             break

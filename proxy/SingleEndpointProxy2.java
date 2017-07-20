@@ -24,6 +24,7 @@ import org.apache.http.impl.io.ChunkedInputStream;
 public class SingleEndpointProxy2 extends Thread {
 
     private String endpointAddress = null;
+    private String proxyAddress = null;
     private int proxyPort;
     private int endpointPort = 80;
     private Socket connectedClient = null;
@@ -32,9 +33,10 @@ public class SingleEndpointProxy2 extends Thread {
     private boolean show = true;
     private String graph = null;
 
-    public SingleEndpointProxy2 (String address, int portP, int portE, String g) {
+    public SingleEndpointProxy2 (String addressE, int portE, String addressP, int portP, String g) {
 
-        this.endpointAddress = address;
+        this.endpointAddress = addressE;
+        this.proxyAddress = addressP;
         this.proxyPort = portP;
         this.endpointPort = portE;
         this.graph = g;
@@ -70,7 +72,7 @@ public class SingleEndpointProxy2 extends Thread {
         boolean ready = false;
         while (!ready) {
             try {
-                ss = new ServerSocket (this.proxyPort, 50, InetAddress.getByName(this.endpointAddress));
+                ss = new ServerSocket (this.proxyPort, 50, InetAddress.getByName(this.proxyAddress));
                 ready = true;
             } catch (java.io.IOException e) {
                 //Thread.sleep(5);
@@ -463,18 +465,19 @@ public class SingleEndpointProxy2 extends Thread {
     }
 
     /*
-     * Usage: java EndpointProxy proxyAddress proxyPort endpointAddress endpointPort delay alpha beta seed
+     * 
      */
     public static void main (String args[]) throws Exception {
 
-        String address = args[0];
+        String endpointAddress = args[0];
         int endpointPort = Integer.parseInt(args[1]);
-        int proxyPort = Integer.parseInt(args[2]);
+        String proxyAddress = args[2];
+        int proxyPort = Integer.parseInt(args[3]);
         String graph = null;
-        if (args.length>3) {
-            graph = args[3];
+        if (args.length>4) {
+            graph = args[4];
         }
-        (new SingleEndpointProxy2(address, proxyPort, endpointPort, graph)).start();
+        (new SingleEndpointProxy2(endpointAddress, endpointPort, proxyAddress, proxyPort, graph)).start();
     }
 }
 

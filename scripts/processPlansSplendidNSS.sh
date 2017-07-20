@@ -9,7 +9,7 @@ while read line; do
     if [ "${line:0:8}" = "planning" ]; then
         inquery=true
         n=0
-    elif [ "${line:0:7}" = "Command" ]; then #ENDPLAN" ]; then
+    elif [ "${line:0:7}" = "ENDPLAN" ]; then
         if [ "$n" -ge "0" ]; then
             echo "$n"
         fi

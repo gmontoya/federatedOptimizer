@@ -25,6 +25,8 @@ for i in ${s}; do
     l="${l} CD${i}"
 done
 
+l="CD7"
+
 for i in ${s}; do
     l="${l} LS${i}"
 done

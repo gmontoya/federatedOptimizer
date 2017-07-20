@@ -190,10 +190,10 @@ class evaluateSPARQLQueryVOID {
             c = vcs.getCount();
             System.out.println("NumberServices="+c);
             System.out.println("Plan: "+newQuery);
-            System.exit(1);
+            //System.exit(1);
             evaluateSPARQLQuery.evaluate(newQuery.toString(), queryId, false);
         } else {
-            System.exit(1);
+            //System.exit(1);
             evaluateSPARQLQuery.evaluate(query.toString(), queryId, true);
         }
         FederationManager.getInstance().shutDown();

@@ -4,10 +4,10 @@ folder=/home/roott/queries/fedBench
 #folder=/home/roott/queries/complexQueries
 sed -i "s,optimize=.*,optimize=true," /home/roott/federatedOptimizer/lib/fedX3.1/config2
 cp /home/roott/fedBenchFederationProxy.ttl /home/roott/fedBenchFederation.ttl
-cold=false
+cold=true
 s=`seq 1 11`
 l=""
-n=1
+n=2
 w=1800
 
 for i in ${s}; do
@@ -30,13 +30,14 @@ done
 #    l="${l} C${i}"
 #done
 
-#l="LS7"
+l="CD2 LS6"
 
 for query in ${l}; do
     f=0
+    rm /home/roott/federatedOptimizer/lib/fedX3.1/cache.db
     for j in `seq 1 ${n}`; do
         cd /home/roott/federatedOptimizer/scripts
-        tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
+        tmpFile=`./startProxies2.sh "172.19.2.123 172.19.2.106 172.19.2.100 172.19.2.115 172.19.2.107 172.19.2.118 172.19.2.111 172.19.2.113 172.19.2.120" 3030`
         sleep 1s
         cd /home/roott/federatedOptimizer/lib/fedX3.1
         if [ "$cold" = "true" ] && [ -f cache.db ]; then
@@ -50,6 +51,13 @@ for query in ${l}; do
         else
             s=-1
         fi
+
+        /home/roott/federatedOptimizer/scripts/processFedXPlansNSS.sh outputFile > xxx
+        nss=`cat xxx`
+        /home/roott/federatedOptimizer/scripts/processFedXPlansNSQ.sh outputFile > xxx
+        ns=`cat xxx`
+        rm xxx
+
         x=`tail -n 1 timeFile`
         y=`echo ${x%% *}`
         x=`echo ${y%%.*}`
@@ -70,7 +78,7 @@ for query in ${l}; do
         sleep 10s
         pi=`./processProxyInfo.sh ${tmpFile} 0 8`
 
-        echo "${query} ${s} ${t} ${pi} ${nr}"
+        echo "${query} ${nss} ${ns} ${s} ${t} ${pi} ${nr}"
         if [ "$f" -ge "2" ]; then
             break
         fi

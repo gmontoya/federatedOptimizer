@@ -2,16 +2,16 @@
 
 sed -i "s,optimize=.*,optimize=false," /home/roott/federatedOptimizer/lib/fedX3.1/config2
 #cp /home/roott/fedBenchFederationFuseki.ttl /home/roott/fedBenchFederation.ttl
-cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
-#cp /home/roott/fedBenchFederationProxy.ttl /home/roott/fedBenchFederation.ttl
+#cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
+cp /home/roott/fedBenchFederationProxy.ttl /home/roott/fedBenchFederation.ttl
 fedBench=/home/roott/queries/fedBench
 newQueries=/home/roott/queries/fedBench_1_1
 #fedBench=/home/roott/queries/complexQueries
 #newQueries=/home/roott/queries/complexQueries_1_1
 generalPreds=/home/roott/generalPredicates
 #datasets=/home/roott/datasetsFuseki
-datasets=/home/roott/datasetsVirtuoso
-#datasets=/home/roott/datasets
+#datasets=/home/roott/datasetsVirtuoso
+datasets=/home/roott/datasets
 cold=true
 s=`seq 1 11`
 l=""
@@ -40,14 +40,15 @@ done
 
 #l="LD7 LD11 CD6 CD7 LS5"
 #l="LD3 LD7 LD11 LS3 LS5 LS7"
-#l="CD7"
+l="LS6"
 
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
-        #cd /home/roott/federatedOptimizer/scripts
+        cd /home/roott/federatedOptimizer/scripts
         #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
-        #sleep 1s
+        tmpFile=`./startProxies2.sh "172.19.2.123 172.19.2.106 172.19.2.100 172.19.2.115 172.19.2.107 172.19.2.118 172.19.2.111 172.19.2.113 172.19.2.120" 3030`
+        sleep 1s
         #cd /home/roott/federatedOptimizer/scripts
         #./startFederation.sh > outputStartFederation
         #sleep 1m
@@ -55,7 +56,7 @@ for query in ${l}; do
         if [ "$cold" = "true" ] && [ -f /home/roott/federatedOptimizer/lib/fedX3.1/cache.db ]; then
             rm /home/roott/federatedOptimizer/lib/fedX3.1/cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateOurPlansWithFedXOrder $fedBench/$query ${datasets} /home/roott/fedBenchData 100000000 true false $newQueries/$query $generalPreds > outputFile 2> timeFile
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateOurPlansWithFedXOrder $fedBench/$query ${datasets} /home/roott/fedBenchData 100000000 true false $newQueries/$query $generalPreds > outputFile 2> timeFile
         x=`grep "planning=" outputFile`
         y=`echo ${x##*planning=}`
 
@@ -63,6 +64,28 @@ for query in ${l}; do
             d=`echo ${y%%ms*}`
         else
             d=-1
+        fi
+
+        x=`grep "NumberSelectedSources=" outputFile`
+        y=`echo ${x##*NumberSelectedSources=}`
+
+        if [ -n "$y" ]; then
+            nss=`echo ${y}`
+        else
+            /home/roott/federatedOptimizer/scripts/processFedXPlansNSS.sh outputFile > xxx
+            nss=`cat xxx`
+            rm xxx
+        fi
+
+        x=`grep "NumberServices=" outputFile`
+        y=`echo ${x##*NumberServices=}`
+
+        if [ -n "$y" ]; then
+            ns=`echo ${y}`
+        else
+            /home/roott/federatedOptimizer/scripts/processFedXPlansNSQ.sh outputFile > xxx
+            ns=`cat xxx`
+            rm xxx
         fi
 
         x=`tail -n 1 timeFile`
@@ -80,11 +103,11 @@ for query in ${l}; do
             x=`grep "results=" outputFile`
             nr=`echo ${x##*results=}`
         fi
-        #cd /home/roott/federatedOptimizer/scripts
-        #./killAll.sh /home/roott/tmp/proxyFederation
-        #sleep 10s
-        #pi=`./processProxyInfo.sh ${tmpFile} 0 8`
-        echo "${query} ${d} ${t} ${nr}"
+        cd /home/roott/federatedOptimizer/scripts
+        ./killAll.sh /home/roott/tmp/proxyFederation
+        sleep 10s
+        pi=`./processProxyInfo.sh ${tmpFile} 0 8`
+        echo "${query} ${nss} ${ns} ${d} ${t} ${pi} ${nr}"
         
         if [ "$f" -ge "2" ]; then
             break
