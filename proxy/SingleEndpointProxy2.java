@@ -1,5 +1,3 @@
-//java -cp $CLASSPATH:commons-math-2.2.jar EndpointProxy 159.90.11.58 7007 159.90.11.193 8890 False 3 1.0 1
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
