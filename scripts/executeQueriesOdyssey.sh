@@ -16,7 +16,7 @@ datasets=/home/roott/datasetsLocalVirtuoso
 cold=true
 s=`seq 1 11`
 l=""
-n=2
+n=1
 w=1800
 for i in ${s}; do
     l="${l} LD${i}"
@@ -48,6 +48,8 @@ done
 #    l="${l} fragment${i}"
 #done
 
+#l="LS3"
+
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
@@ -55,7 +57,7 @@ for query in ${l}; do
         if [ "$cold" = "true" ] && [ -f /home/roott/federatedOptimizer/lib/fedX3.1/cache.db ]; then
             rm /home/roott/federatedOptimizer/lib/fedX3.1/cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateSPARQLQueryNew $fedBench/$query ${datasets} /home/roott/fedBenchData 100000000 true false $newQueries/$query $generalPreds > outputFile 2> timeFile
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateSPARQLQuery $fedBench/$query ${datasets} /home/roott/fedbBenchData 100000000 true false $newQueries/$query $generalPreds > outputFile 2> timeFile
         #/usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateSPARQLQuery $fedBench/$query ${datasets} /home/roott/fedBenchData 100000000 true false $newQueries/$query $generalPreds > outputFile 2> timeFile
         x=`grep "planning=" outputFile`
         y=`echo ${x##*planning=}`

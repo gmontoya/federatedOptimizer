@@ -18,6 +18,8 @@ for d in ${toDo}; do
             ln -s /home/roott/fedBenchData/${d}/statistics${d}${g} /home/roott/fedBenchData/${d}/statistics${d}${g}_reduced10000CS
         fi
     done
+    mv /home/roott/fedBenchData/${d}/statistics${d}_cps_reduced10000CS /home/roott/fedBenchData/${d}/statistics${d}_cps_reduced10000CS_
+    java changeCPS /home/roott/fedBenchData/${d}/statistics${d}_cps_reduced10000CS /home/roott/fedBenchData/${d}/statistics${d}_cps_reduced10000CS_
     echo "obtainRadixOneBasedIndex"
     /usr/bin/time -f "%e %P %t %M" java obtainRadixOneBasedIndex /home/roott/fedBenchData/${d}/statistics${d}_iis_reduced10000CS /home/roott/fedBenchData/${d}/statistics${d}_iio_reduced10000CS /home/roott/fedBenchData/${d}/statistics${d}_rtree_100_10_reduced10000CS_1 100 10 -1 10
     #ls -lh /home/roott/fedBenchData/${d}/statistics${d}_rtree_100_10_reduced10000CS_1
