@@ -1,15 +1,15 @@
 #!/bin/bash
 
 m=5000000
-subj=false
-#datasets="ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB DBpedia Geonames"
-datasets="Geonames"
+subj=true
+datasets="ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB DBpedia Geonames"
+folder=/home/roott/fedBenchData
 export codehome=/home/roott/federatedOptimizer
 cd ${codehome}/code
 
 for d in ${datasets}; do
     f=`echo "$d" | tr '[:upper:]' '[:lower:]'`
-    dump="/home/roott/fedBenchData/${d}/${f}Sorted.n3"
+    dump="${folder}/${d}/${f}.n3"
     n=45000000
     #n=`wc -l ${dump} | sed 's/^[ ^t]*//' | cut -d' ' -f1`
     if [ "$n" -gt "$m" ]; then
@@ -32,8 +32,8 @@ for d in ${datasets}; do
                 started=1
             fi  
         done
-        mv  ${accFile} /home/roott/fedBenchData/${d}/${f}ObjSorted.n3
+        mv  ${accFile} ${folder}/${d}/${f}Sorted.n3
     else 
-        java orderDataset ${dump} ${n} ${subj} > /home/roott/fedBenchData/${d}/${f}ObjSorted.n3
+        java orderDataset ${dump} ${n} ${subj} > ${folder}/${d}/${f}ObjSorted.n3
     fi
 done
