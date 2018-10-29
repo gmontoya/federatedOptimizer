@@ -29,13 +29,6 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-#s=`seq 1 10`
-#l=""
-
-#for i in ${s}; do
-#    l="${l} C${i}"
-#done
-
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
