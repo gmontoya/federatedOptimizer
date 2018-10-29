@@ -1,6 +1,6 @@
 #!/bin/bash
 
-folder=/home/roott/queries/fedBench
+fedBench=/home/roott/queries/fedBench
 splendidDescriptionFile=/home/roott/splendidFedBenchFederation.n3
 SPLENDID_HOME=/home/roott/rdffederator
 proxyFederationFile=/home/roott/tmp/proxyFederation
@@ -33,7 +33,7 @@ for query in ${l}; do
         sleep 10s
 
         cd /home/roott/rdffederator
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidDescriptionFile} ${folder}/${query} > outputFile 2> timeFile
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidDescriptionFile} ${fedBench}/${query} > outputFile 2> timeFile
 
         x=`tail -n 1 timeFile`
         y=`echo ${x%% *}`
