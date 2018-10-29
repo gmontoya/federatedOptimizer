@@ -1,7 +1,10 @@
 #!/bin/bash
 
-folder=/home/roott/queries/fedBench
-cp /home/roott/splendidFedBenchFederationVirtuoso.n3 /home/roott/splendidFedBenchFederation.n3
+fedBench=/home/roott/queries/fedBench
+splendidDescriptionFile=/home/roott/splendidFedBenchFederation.n3
+SPLENDID_HOME=/home/roott/rdffederator
+ODYSSEY_HOME=/home/roott/federatedOptimizer
+
 s=`seq 1 11`
 l=""
 n=10
@@ -19,13 +22,12 @@ done
 for i in ${s}; do
     l="${l} LS${i}"
 done
-#l="CD7 LS5"
 
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
-        cd /home/roott/rdffederator
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh /home/roott/splendidFedBenchFederation.n3 ${folder}/${query} > outputFile 2> timeFile
+        cd ${SPLENDID_HOME}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidDescriptionFile} ${folder}/${query} > outputFile 2> timeFile
 
         x=`tail -n 1 timeFile`
         y=`echo ${x%% *}`
@@ -51,9 +53,9 @@ for query in ${l}; do
 
         nr=`python formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        /home/roott/federatedOptimizer/scripts/processPlansSplendidNSS.sh timeFile > xxx
+        ${ODYSSEY_HOME}/scripts/processPlansSplendidNSS.sh timeFile > xxx
         nss=`cat xxx`
-        /home/roott/federatedOptimizer/scripts/processPlansSplendidNSQ.sh timeFile > xxx
+        ${ODYSSEY_HOME}/scripts/processPlansSplendidNSQ.sh timeFile > xxx
         ns=`cat xxx`
         rm xxx
         echo "${query} ${nss} ${ns} ${s} ${t} ${nr}"
