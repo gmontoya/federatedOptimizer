@@ -1,0 +1,37 @@
+@prefix fluid: <http://fluidops.org/config#>.
+
+<http://ChEBI> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST1:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://KEGG> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST2:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://Drugbank> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST3:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://Geonames> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST4:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://DBpedia> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST5:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://Jamendo> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST6:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://NYTimes> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST7:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://SWDF> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST8:8890/sparql";
+fluid:supportsASKQueries "false" .
+
+<http://LMDB> fluid:store "SPARQLEndpoint";
+fluid:SPARQLEndpoint "HOST9:8890/sparql";
+fluid:supportsASKQueries "false" .
