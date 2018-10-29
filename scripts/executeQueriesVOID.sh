@@ -1,22 +1,22 @@
 #!/bin/bash
 
-sed -i "s,optimize=.*,optimize=false," /home/roott/federatedOptimizer/lib/fedX3.1/config2
-cp /home/roott/fedBenchFederationVirtuoso.ttl /home/roott/fedBenchFederation.ttl
+ODYSSEY_HOME=/home/roott/federatedOptimizer
+JENA_HOME=/home/roott/apache-jena-2.13.0
+fedBenchDataPath=/home/roott/fedbBenchData
+sed -i "s,optimize=.*,optimize=false," ${ODYSSEY_HOME}/lib/fedX3.1/config2
 fedBench=/home/roott/queries/fedBench
-newQueries=/home/roott/queries/fedBench_1_1_VOID
-generalPreds=/home/roott/generalPredicates
+#newQueries=/home/roott/queries/fedBench_1_1_VOID
 datasets=/home/roott/datasetsVirtuoso
+cold=true
 
 s=`seq 1 11`
 l=""
 n=10
 w=1800
-cold=true
+
 for i in ${s}; do
     l="${l} LD${i}"
 done
-
-#l="LD11"
 
 s=`seq 1 7`
 
@@ -28,18 +28,14 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-#l="LD1"
 for query in ${l}; do
-    #cd /home/roott/federatedOptimizer/scripts
-    #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
-    #sleep 1s
     f=0
     for j in `seq 1 ${n}`; do
-        cd /home/roott/federatedOptimizer/code
-        if [ "$cold" = "true" ] && [ -f /home/roott/federatedOptimizer/lib/fedX3.1/cache.db ]; then
-            rm /home/roott/federatedOptimizer/lib/fedX3.1/cache.db
+        cd ${ODYSSEY_HOME}/code
+        if [ "$cold" = "true" ] && [ -f ${ODYSSEY_HOME}/lib/fedX3.1/cache.db ]; then
+            rm ${ODYSSEY_HOME}/lib/fedX3.1/cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:/home/roott/apache-jena-2.13.0/lib/*:/home/roott/federatedOptimizer/lib/fedX3.1/lib/* evaluateSPARQLQueryVOID $fedBench/$query ${datasets} /home/roott/fedBenchData $newQueries/$query > outputFile 2> timeFile
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:${JENA_HOME}/lib/*:${ODYSSEY_HOME}/lib/fedX3.1/lib/* evaluateSPARQLQueryVOID $fedBench/$query ${datasets} ${fedBenchDataPath} $newQueries/$query > outputFile 2> timeFile
         x=`tail -n 1 timeFile`
         y=`echo ${x%% *}`
         x=`echo ${y%%.*}`
@@ -83,15 +79,6 @@ for query in ${l}; do
             ns=-1
         fi
 
-
-        
-        #ns=`grep SERVICE outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
-        #cd /home/roott/federatedOptimizer/scripts
-        #./killAll.sh /home/roott/tmp/proxyFederation
-        #sleep 10s
-        #pi=`./processProxyInfo.sh ${tmpFile} 0 8`
-        #echo "${query} ${s} ${t} ${pi} ${nr}"
-        #echo "${query} ${s} ${t} ${nr} ${ns}"
         echo "${query} ${nss} ${ns} ${s} ${t} ${nr}"
         if [ "$f" -ge "2" ]; then
             break
