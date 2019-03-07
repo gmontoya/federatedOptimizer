@@ -23,11 +23,13 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
+p=`pwd`
+
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
 
-        cd ${ODYSSEY_HOME}/scripts
+        cd ${p}
         #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
         tmpFile=`./startProxies2.sh "172.19.2.123 172.19.2.106 172.19.2.100 172.19.2.115 172.19.2.107 172.19.2.118 172.19.2.111 172.19.2.113 172.19.2.120" 3030`
         sleep 10s
@@ -42,7 +44,7 @@ for query in ${l}; do
             t=`echo $y`
             t=`echo "scale=2; $t*1000" | bc`
             f=$(($f+1))
-            python fixJSONFile.py outputFile
+            ${p}/fixJSONAnswer.sh outputFile
         else
             x=`grep "duration=" timeFile`
             y=`echo ${x##*duration=}`
@@ -57,15 +59,15 @@ for query in ${l}; do
             s=-1
         fi
 
-        nr=`python formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+        nr=`python ${p}/formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        ${ODYSSEY_HOME}/scripts/processPlansSplendidNSS.sh timeFile > xxx
+        ${p}/processPlansSplendidNSS.sh timeFile > xxx
         nss=`cat xxx`
-        ${ODYSSEY_HOME}/scripts/processPlansSplendidNSQ.sh timeFile > xxx
+        ${p}/processPlansSplendidNSQ.sh timeFile > xxx
         ns=`cat xxx`
         rm xxx
 
-        cd ${ODYSSEY_HOME}
+        cd ${p}
         ./killAll.sh ${proxyFederationFile}
         sleep 10s
         pi=`./processProxyInfo.sh ${tmpFile} 0 8`
