@@ -1,5 +1,7 @@
 #!/bin/bash
 
+tmpFile=`mktemp`
+
 removeSpaces() {
   str="$1"
   while [ true ]; do
