@@ -23,6 +23,8 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
+p=`pwd`
+
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
@@ -36,7 +38,7 @@ for query in ${l}; do
             t=`echo $y`
             t=`echo "scale=2; $t*1000" | bc`
             f=$(($f+1))
-            python fixJSONFile.py outputFile
+            ${p}/fixJSONAnswer.sh outputFile
         else
             x=`grep "duration=" timeFile`
             y=`echo ${x##*duration=}`
@@ -51,11 +53,11 @@ for query in ${l}; do
             s=-1
         fi
 
-        nr=`python formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+        nr=`python ${p}/formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        ${ODYSSEY_HOME}/scripts/processPlansSplendidNSS.sh timeFile > xxx
+        ${p}/processPlansSplendidNSS.sh timeFile > xxx
         nss=`cat xxx`
-        ${ODYSSEY_HOME}/scripts/processPlansSplendidNSQ.sh timeFile > xxx
+        ${p}/processPlansSplendidNSQ.sh timeFile > xxx
         ns=`cat xxx`
         rm xxx
         echo "${query} ${nss} ${ns} ${s} ${t} ${nr}"
