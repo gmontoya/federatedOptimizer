@@ -1,0 +1,46 @@
+# number of times each the queries will be executed
+numRuns=1
+# timeout in seconds
+timeoutValue=300
+# path of the repository federatedOptimizer
+federatedOptimizerPath=/home/roott/odyssey/federatedOptimizer
+# path of the data and statistics
+# included statistics:
+# ${fedBenchDataPath}/statistics${d}_* for d in "ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB Geonames DBpedia" and ${fedBenchDataPath}/cps_* (for Odyssey)
+# ${fedBenchDataPath}/statsHibiscus.n3 (for hibiscus)
+# ${fedBenchDataPath}/semagrowMetadata.ttl  (for semagrow)
+# ${fedBenchDataPath}/*_void.n3 (for splendid) 
+fedBenchDataPath=/home/roott/odysseyFiles/fedbench
+JENA_HOME=/home/roott/apache-jena-2.13.0
+# folder that has the fedBench queries
+queriesFolder=/home/roott/queries/fedBench
+# folder that includes the relevant federation descriptions for the different 
+# systems, it includes:
+# ${federationFile} (for Odyssey and VOID)
+# fedBenchFederation.ttl (for FedX)
+# repository.ttl.base (for semagrow)
+# splendidFedBenchFederation.n3.base (for splendid)
+federationPath=/home/roott/odysseyFiles/federation
+# description of the federation for Odyssey and VOID
+federationFile=${federationPath}/datasetsVM10
+fedXPath=/home/roott/odyssey/fedX3.1
+fedXConfigFile=${fedXPath}/config2
+# file that can be used to store the pids of the proxies in the federation
+proxyFederationFile=/home/roott/tmp/proxyFederation
+FEDX_HIBISCUS_HOME=/home/roott/FedX-HiBISCus
+hibiscusConfigFile=${federationPath}/config.properties
+SEMAGROW_HOME=/home/roott/semagrow
+SPLENDID_HOME=/home/roott/rdffederator
+virtuosoPath=/home/roott/virtuosoInstallation_6_1_7
+# Sorted if the dataset file is sorted by subject
+suffix=Sorted
+httpcomponentsClientPath=/home/roott/odyssey/httpcomponents-client-4.5.3
+# addresses of the SPARQL endpoints in the federation
+# if all the endpoints are in the same machine, include it only once
+# endpoints in different machines are assumed use port 8890 and in the same
+# machine ports 8891-8899 in the order given in ${federationPath}/datasetsVirtuoso
+#declare -a addresses=("HOST1" "HOST2" "HOST3" "HOST4" "HOST5" "HOST6" "HOST7" "HOST8" "HOST9")
+declare -a addresses=("172.19.2.109")
+# number of hosts for the endpoints
+numHosts=${#addresses[@]}
+

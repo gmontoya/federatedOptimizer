@@ -10,7 +10,6 @@ nc=0
 for i in  `seq ${first} ${last}`; do
    fn="${prefix}_${i}"
    line=`tail -n 1 ${fn}`
-   #echo "line: $line"
    x=${line% *}
    y=${line#* }
    ir=$(($ir+$x))

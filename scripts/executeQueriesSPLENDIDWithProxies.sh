@@ -1,14 +1,19 @@
 #!/bin/bash
 
-fedBench=/home/roott/queries/fedBench
-splendidDescriptionFile=/home/roott/splendidFedBenchFederation.n3
-SPLENDID_HOME=/home/roott/rdffederator
-proxyFederationFile=/home/roott/tmp/proxyFederation
+. ./configFile
+
+splendidFederationFile=${federationFile}/splendidFedBenchFederation.n3
 
 s=`seq 1 11`
 l=""
-n=10
-w=1800
+
+tmpFile=`mktemp`
+outputFile=`mktemp`
+errorFile=`mktemp`
+
+n=${numRuns}
+w=${timeoutValue}
+
 for i in ${s}; do
     l="${l} LD${i}"
 done
@@ -23,34 +28,31 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-p=`pwd`
-
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
 
-        cd ${p}
-        #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
-        tmpFile=`./startProxies2.sh "172.19.2.123 172.19.2.106 172.19.2.100 172.19.2.115 172.19.2.107 172.19.2.118 172.19.2.111 172.19.2.113 172.19.2.120" 3030`
+        cd ${federatedOptimizerPath}/scripts
+        tmpFile=`./startProxies.sh 8891 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
         sleep 10s
 
-        cd /home/roott/rdffederator
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidDescriptionFile} ${fedBench}/${query} > outputFile 2> timeFile
+        cd ${SPLENDID_HOME}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidFederationFile} ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
 
-        x=`tail -n 1 timeFile`
+        x=`tail -n 1 ${errorFile}`
         y=`echo ${x%% *}`
         x=`echo ${y%%.*}`
         if [ "$x" -ge "$w" ]; then
             t=`echo $y`
             t=`echo "scale=2; $t*1000" | bc`
             f=$(($f+1))
-            ${p}/fixJSONAnswer.sh outputFile
+            ${federatedOptimizerPath}/fixJSONAnswer.sh ${outputFile}
         else
-            x=`grep "duration=" timeFile`
+            x=`grep "duration=" ${errorFile}`
             y=`echo ${x##*duration=}`
             t=`echo ${y%%ms*}`
         fi
-        x=`grep "planning=" timeFile`
+        x=`grep "planning=" ${errorFile}`
         y=`echo ${x##*planning=}`
 
         if [ -n "$y" ]; then
@@ -59,15 +61,15 @@ for query in ${l}; do
             s=-1
         fi
 
-        nr=`python ${p}/formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+        nr=`python ${federatedOptimizerPath}/formatJSONFile.py ${outputFile} | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        ${p}/processPlansSplendidNSS.sh timeFile > xxx
-        nss=`cat xxx`
-        ${p}/processPlansSplendidNSQ.sh timeFile > xxx
-        ns=`cat xxx`
-        rm xxx
+        ${federatedOptimizerPath}/processPlansSplendidNSS.sh ${errorFile} > ${auxFile}
+        nss=`cat ${auxFile}`
+        ${federatedOptimizerPath}/processPlansSplendidNSQ.sh ${errorFile} > ${auxFile}
+        ns=`cat ${auxFile}`
+        rm ${auxFile}
 
-        cd ${p}
+        cd ${federatedOptimizerPath}
         ./killAll.sh ${proxyFederationFile}
         sleep 10s
         pi=`./processProxyInfo.sh ${tmpFile} 0 8`
@@ -78,3 +80,6 @@ for query in ${l}; do
         fi
     done
 done
+
+rm -f ${outputFile}
+rm -f ${errorFile}

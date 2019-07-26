@@ -1,23 +1,30 @@
 #!/bin/bash
 
-firstPort=$1
-lastPort=$2
-firstProxyPort=$3
-datasets="${4}"
+. ./configFile
 
-last=$(($lastPort-$firstPort))
-tmpFile=`mktemp --tmpdir=/home/roott/tmp`
+firstPort=$1
+firstProxyPort=$2
+datasets="${3}"
+
+tmpFile=`mktemp`
 
 p=`pwd`
 echo "$tmpFile"
 i=0
-rm  /home/roott/tmp/proxyFederation
+
+rm ${proxyFederationFile}
 
 for d in ${datasets}; do
     f=`echo "$d" | tr '[:upper:]' '[:lower:]'`
-    localPort=$(($firstPort+$i))
     localProxyPort=$(($firstProxyPort+$i))
     graph="http://${f}Endpoint"
-    ./startOneProxy.sh ${localPort} ${localProxyPort} ${tmpFile}_$i ${graph} >> /home/roott/tmp/proxyFederation
+    if [ "${numHosts}" -gt "1" ]; then
+        a=${addresses[$i]}
+        localPort=$firstPort
+    else 
+        a=${addresses[0]}
+        localPort=$(($firstPort+$i))
+    fi
+    ./startOneProxy.sh ${a} ${localPort} ${localProxyPort} ${tmpFile}_$i ${graph} >> ${proxyFederationFile}
     i=$(($i+1))
 done

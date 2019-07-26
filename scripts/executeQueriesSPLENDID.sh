@@ -1,14 +1,19 @@
 #!/bin/bash
 
-fedBench=/home/roott/queries/fedBench
-splendidDescriptionFile=/home/roott/splendidFedBenchFederation.n3
-SPLENDID_HOME=/home/roott/rdffederator
-ODYSSEY_HOME=/home/roott/federatedOptimizer
+. ./configFile
+
+splendidFederationFile=${federationPath}/splendidFedBenchFederation.n3
 
 s=`seq 1 11`
 l=""
-n=10
-w=1800
+
+auxFile=`mktemp`
+outputFile=`mktemp`
+errorFile=`mktemp`
+
+n=${numRuns}
+w=${timeoutValue}
+
 for i in ${s}; do
     l="${l} LD${i}"
 done
@@ -23,28 +28,26 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-p=`pwd`
-
 for query in ${l}; do
     f=0
     for j in `seq 1 ${n}`; do
         cd ${SPLENDID_HOME}
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidDescriptionFile} ${folder}/${query} > outputFile 2> timeFile
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./SPLENDID.sh ${splendidFederationFile} ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
 
-        x=`tail -n 1 timeFile`
+        x=`tail -n 1 ${errorFile}`
         y=`echo ${x%% *}`
         x=`echo ${y%%.*}`
         if [ "$x" -ge "$w" ]; then
             t=`echo $y`
             t=`echo "scale=2; $t*1000" | bc`
             f=$(($f+1))
-            ${p}/fixJSONAnswer.sh outputFile
+            ${federatedOptimizerPath}/fixJSONAnswer.sh ${outputFile}
         else
-            x=`grep "duration=" timeFile`
+            x=`grep "duration=" ${errorFile}`
             y=`echo ${x##*duration=}`
             t=`echo ${y%%ms*}`
         fi
-        x=`grep "planning=" timeFile`
+        x=`grep "planning=" ${errorFile}`
         y=`echo ${x##*planning=}`
 
         if [ -n "$y" ]; then
@@ -53,13 +56,13 @@ for query in ${l}; do
             s=-1
         fi
 
-        nr=`python ${p}/formatJSONFile.py outputFile | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+        nr=`python ${federatedOptimizerPath}/formatJSONFile.py ${outputFile} | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        ${p}/processPlansSplendidNSS.sh timeFile > xxx
-        nss=`cat xxx`
-        ${p}/processPlansSplendidNSQ.sh timeFile > xxx
-        ns=`cat xxx`
-        rm xxx
+        ${federatedOptimizerPath}/processPlansSplendidNSS.sh ${errorFile} > ${auxFile}
+        nss=`cat ${auxFile}`
+        ${federatedOptimizerPath}/processPlansSplendidNSQ.sh ${errorFile} > ${auxFile}
+        ns=`cat ${auxFile}`
+        rm ${auxFile}
         echo "${query} ${nss} ${ns} ${s} ${t} ${nr}"
 
         if [ "$f" -ge "2" ]; then
@@ -68,3 +71,6 @@ for query in ${l}; do
 
     done
 done
+
+rm -f ${outputFile}
+rm -f ${errorFile}

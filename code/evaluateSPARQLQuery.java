@@ -106,7 +106,7 @@ class evaluateSPARQLQuery {
             String datasetStr2 = datasets.get(ds2);
             String fileCPS = folder;
             if (datasetStr1.equals(datasetStr2)) {
-                fileCPS += "/"+datasetStr1+"/statistics"+datasetStr1+"_cps_reduced10000CS";
+                fileCPS += "/statistics"+datasetStr1+"_cps_reduced10000CS";
             } else {
                 fileCPS += "/cps_"+datasetStr1+"_"+datasetStr2+"_one_rtree_reduced10000CS_1"; 
             }
@@ -120,16 +120,16 @@ class evaluateSPARQLQuery {
         int pos = cssSubj.size();
         datasetsIdPosSubj.put(ds, pos);
         String datasetStr = datasets.get(ds);
-        String fileCSS = folder+"/"+datasetStr+"/statistics"+datasetStr+"_css_reduced10000CS";
+        String fileCSS = folder+"/statistics"+datasetStr+"_css_reduced10000CS";
         HashMap<Integer, Pair<Integer, HashMap<String, Pair<Integer, Integer>>>> cs = produceStarJoinOrdering.readCSS(fileCSS);
         cssSubj.add(pos, cs);
-        String fileHC = folder+"/"+datasetStr+"/statistics"+datasetStr+"_hc_reduced10000CS";
+        String fileHC = folder+"/statistics"+datasetStr+"_hc_reduced10000CS";
         HashMap<Integer, Integer> hc = produceStarJoinOrdering.readMap(fileHC);
         hcsSubj.add(pos, hc);
-        String fileAdditionalSets = folder+"/"+datasetStr+"/statistics"+datasetStr+"_as_reduced10000CS";
+        String fileAdditionalSets = folder+"/statistics"+datasetStr+"_as_reduced10000CS";
         HashMap<Integer, Set<String>> ass = produceStarJoinOrdering.readAdditionalSets(fileAdditionalSets);
         additionalSetsSubj.add(pos, ass);
-        String fileCost = folder+"/"+datasetStr+"/statistics"+datasetStr+"_cost_reduced10000CS";
+        String fileCost = folder+"/statistics"+datasetStr+"_cost_reduced10000CS";
         HashMap<Integer, Integer> cost = produceStarJoinOrdering.readMap(fileCost);
         costsSubj.add(pos, cost);
         return pos;
@@ -175,7 +175,7 @@ class evaluateSPARQLQuery {
         HashMap<String, HashMap<Integer,HashSet<Integer>>> predIndex = new HashMap<String, HashMap<Integer,HashSet<Integer>>>();
         for (int i = 0; i < datasets.size(); i++) {
             String datasetStr = datasets.get(i);
-            String fileName = folder+"/"+datasetStr+"/statistics"+datasetStr+"_pi"+suffix+"_reduced10000CS";
+            String fileName = folder+"/statistics"+datasetStr+"_pi"+suffix+"_reduced10000CS";
             
             try {
                 ObjectInputStream in = new ObjectInputStream(
@@ -257,7 +257,6 @@ class evaluateSPARQLQuery {
         long budget = Long.parseLong(args[3]);
         includeMultiplicity = Boolean.parseBoolean(args[4]);
         original = Boolean.parseBoolean(args[5]);
-        String fileName = args[6];
         prepareFedX();
         datasets = readDatasets(datasetsFile);
         loadStatistics();

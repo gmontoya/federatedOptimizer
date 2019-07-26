@@ -58,7 +58,7 @@ class evaluateSPARQLQueryVOID {
         String classQueryStr = "SELECT DISTINCT * WHERE {    ?pp void:class ?class .    ?pp void:entities ?numEntities }";
         for (int i = 0; i < datasets.size(); i++) {
             String datasetStr = datasets.get(i);
-            String fileName = folder+"/"+datasetStr+"/"+datasetStr.toLowerCase()+"_void.n3";
+            String fileName = folder+"/"+datasetStr.toLowerCase()+"_void.n3";
             Model m = ModelFactory.createDefaultModel();
             m.read(fileName);
 
@@ -140,7 +140,6 @@ class evaluateSPARQLQueryVOID {
         evaluateSPARQLQuery.prepareFedX();
         String datasetsFile = args[1];
         folder = args[2];
-        String fileName = args[3];
         datasets = readDatasets(datasetsFile);
         // DatasetId --> Vector<Integer> <numTriples, numClasses, numProperties, numSubj, numObj>
         HashMap<Integer, Vector<Integer>> globalStats = new HashMap<Integer, Vector<Integer>>();

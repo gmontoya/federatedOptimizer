@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./configFile
+
 offset=$1
 port=$((${offset}+8890))
 cmdA="SPARQL WITH <http://www.openlinksw.com/schemas/virtrdf#> DELETE { ?s ?p ?o }     WHERE { graph <http://www.openlinksw.com/schemas/virtrdf#> { ?s ?p ?o }};"
@@ -11,11 +13,13 @@ cmdF="checkpoint;"
 
 p=$(($offset+1111))
 
-cd /home/roott/virtuosoInstallation/bin/
+cd ${virtuosoPath}/bin/
 isql_cmd="./isql ${p} dba"
 isql_pwd="dba"
 
-${isql_cmd} ${isql_pwd} << EOF &> /home/roott/tmp/linking.log
+tmpFile=`mktemp`
+
+${isql_cmd} ${isql_pwd} << EOF &> ${tmpFile}
     $cmdA
     $cmdB
     $cmdC
@@ -24,3 +28,6 @@ ${isql_cmd} ${isql_pwd} << EOF &> /home/roott/tmp/linking.log
     $cmdF
     exit;
 EOF
+
+cat ${tmpFile}
+rm ${tmpFile}
