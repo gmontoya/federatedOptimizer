@@ -2,7 +2,7 @@
 
 . ./configFile
 
-federationDescriptionFile=${federationPath}/fedBenchFederation.ttl
+fedXDescriptionFile=${federationPath}/fedBenchFederation.ttl
 sed -i "s,optimize=.*,optimize=true," ${fedXConfigFile}
 cold=true
 
@@ -31,12 +31,13 @@ done
 
 for query in ${l}; do
     f=0
+    rm -f ${fedXPath}/cache.db
     for j in `seq 1 ${n}`; do
         cd ${fedXPath}
         if [ "$cold" = "true" ] && [ -f cache.db ]; then
-            rm cache.db
+            rm -f cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./cli.sh -c config2 -d ${federationDescriptionFile} @q ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./cli.sh -c ${fedXConfigFile} -d ${fedXDescriptionFile} @q ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
 
         x=`grep "planning=" ${outputFile}`
         y=`echo ${x##*planning=}`

@@ -2,7 +2,7 @@
 
 . ./configFile
 
-splendidFederationFile=${federationFile}/splendidFedBenchFederation.n3
+splendidFederationFile=${federationPath}/splendidFedBenchFederation.n3
 
 s=`seq 1 11`
 l=""
@@ -46,7 +46,7 @@ for query in ${l}; do
             t=`echo $y`
             t=`echo "scale=2; $t*1000" | bc`
             f=$(($f+1))
-            ${federatedOptimizerPath}/fixJSONAnswer.sh ${outputFile}
+            ${federatedOptimizerPath}/scripts/fixJSONAnswer.sh ${outputFile}
         else
             x=`grep "duration=" ${errorFile}`
             y=`echo ${x##*duration=}`
@@ -61,15 +61,16 @@ for query in ${l}; do
             s=-1
         fi
 
-        nr=`python ${federatedOptimizerPath}/formatJSONFile.py ${outputFile} | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+        nr=`python ${federatedOptimizerPath}/scripts/formatJSONFile.py ${outputFile} | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        ${federatedOptimizerPath}/processPlansSplendidNSS.sh ${errorFile} > ${auxFile}
+        auxFile=`mktemp`
+        ${federatedOptimizerPath}/scripts/processPlansSplendidNSS.sh ${errorFile} > ${auxFile}
         nss=`cat ${auxFile}`
-        ${federatedOptimizerPath}/processPlansSplendidNSQ.sh ${errorFile} > ${auxFile}
+        ${federatedOptimizerPath}/scripts/processPlansSplendidNSQ.sh ${errorFile} > ${auxFile}
         ns=`cat ${auxFile}`
         rm ${auxFile}
 
-        cd ${federatedOptimizerPath}
+        cd ${federatedOptimizerPath}/scripts
         ./killAll.sh ${proxyFederationFile}
         sleep 10s
         pi=`./processProxyInfo.sh ${tmpFile} 0 8`
@@ -81,5 +82,10 @@ for query in ${l}; do
     done
 done
 
+#echo ${tmpFile}
+#echo ${outputFile}
+#echo ${errorFile} 
+
+rm -f ${tmpFile}*
 rm -f ${outputFile}
 rm -f ${errorFile}

@@ -29,13 +29,14 @@ done
 
 for query in ${l}; do
     f=0
+    rm -f ${FEDX_HIBISCUS_HOME}/cache.db
     for j in `seq 1 ${n}`; do
         cd ${FEDX_HIBISCUS_HOME}
         if [ -f ${FEDX_HIBISCUS_HOME}/summaries*?/* ]; then
             rm ${FEDX_HIBISCUS_HOME}/summaries*?/*
         fi
         if [ "$cold" = "true" ] && [ -f cache.db ]; then
-            rm cache.db
+            rm -f cache.db
         fi
         /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./cli.sh -c ${hibiscusConfigFile} @q ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
 
@@ -67,7 +68,7 @@ for query in ${l}; do
         ${federatedOptimizerPath}/scripts/processFedXPlansNSQ.sh ${outputFile} > ${auxFile}
         ns=`cat ${auxFile}`
         rm ${auxFile}
-        echo "${query} ${nss} ${ns} ${s} ${t} ${nr}" >> outputExecuteQueriesHibiscus
+        echo "${query} ${nss} ${ns} ${s} ${t} ${nr}"
 
         if [ "$f" -ge "2" ]; then
             break

@@ -1,9 +1,0 @@
-ChEBI	HOST1:8890/sparql
-KEGG	HOST2:8890/sparql
-Drugbank	HOST3:8890/sparql
-Geonames	HOST4:8890/sparql
-DBpedia	HOST5:8890/sparql
-Jamendo	HOST6:8890/sparql
-NYTimes	HOST7:8890/sparql
-SWDF	HOST8:8890/sparql
-LMDB	HOST9:8890/sparql

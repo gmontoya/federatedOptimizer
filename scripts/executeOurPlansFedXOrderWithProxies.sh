@@ -2,6 +2,8 @@
 
 . ./configFile
 
+fedXDescriptionFile=${federationPath}/fedBenchFederation.ttl
+
 sed -i "s,optimize=.*,optimize=false," ${fedXConfigFile}
 cold=true
 
@@ -28,18 +30,20 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
+mv ${fedXPath}/lib/slf4j-log4j12-1.5.2.jar ${fedXPath}/
+
 for query in ${l}; do
     f=0
+    rm -f ${federatedOptimizerPath}/code/cache.db
     for j in `seq 1 ${n}`; do
         cd ${federatedOptimizerPath}/scripts
-        #tmpFile=`./startProxies.sh 8891 8899 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
-        tmpFile=`./startProxies2.sh "172.19.2.123 172.19.2.106 172.19.2.100 172.19.2.115 172.19.2.107 172.19.2.118 172.19.2.111 172.19.2.113 172.19.2.120" 3030`
-        sleep 1s
+        tmpFile=`./startProxies.sh 8891 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
+        sleep 3s
         cd ${federatedOptimizerPath}/code
-        if [ "$cold" = "true" ] && [ -f ${fedXPath}/cache.db ]; then
-            rm ${fedXPath}/cache.db
+        if [ "$cold" = "true" ] && [ -f cache.db ]; then
+            rm -f cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:${JENA_HOME}/lib/*:${fedXPath}/lib/* evaluateOurPlansWithFedXOrder ${queriesFolder}/$query ${federationFile} ${fedBenchDataPath} 100000000 true false > ${outputFile} 2> ${errorFile}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:${JENA_HOME}/lib/*:${fedXPath}/lib/* evaluateOurPlansWithFedXOrder ${queriesFolder}/$query ${federationFile} ${fedBenchDataPath} 100000000 true false ${fedXConfigFile} ${fedXDescriptionFile} > ${outputFile} 2> ${errorFile}
         x=`grep "planning=" ${outputFile}`
         y=`echo ${x##*planning=}`
 
@@ -98,5 +102,12 @@ for query in ${l}; do
     done
 done
 
+mv ${fedXPath}/slf4j-log4j12-1.5.2.jar ${fedXPath}/lib/
+
+#echo ${tmpFile}
+#echo ${outputFile}
+#echo ${errorFile}
+ 
+rm -f ${tmpFile}*
 rm -f ${outputFile}
 rm -f ${errorFile}

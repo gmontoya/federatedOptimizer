@@ -1,0 +1,4 @@
+hibiscusSummaries=$fedBenchDataPath/statsHibiscus.n3
+hibiscusMode=ASK_dominant
+debugQueryPlan=true
+commonPredThreshold=0.33

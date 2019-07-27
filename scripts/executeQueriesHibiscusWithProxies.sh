@@ -29,7 +29,7 @@ done
 
 for query in ${l}; do
     f=0
-    rm ${FEDX_HIBISCUS_HOME}/cache.db
+    rm -f ${FEDX_HIBISCUS_HOME}/cache.db
     for j in `seq 1 ${n}`; do
         cd ${federatedOptimizerPath}/scripts
         tmpFile=`./startProxies.sh 8891 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
@@ -39,7 +39,7 @@ for query in ${l}; do
             rm ${FEDX_HIBISCUS_HOME}/summaries*?/*
         fi
         if [ "$cold" = "true" ] && [ -f cache.db ]; then
-            rm cache.db
+            rm -f cache.db
         fi
         /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./cli.sh -c ${hibiscusConfigFile} @q ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
         x=`grep "planning=" ${outputFile}`
@@ -83,5 +83,6 @@ for query in ${l}; do
     done
 done
 
+rm -f ${tmpFile}*
 rm -f ${outputFile}
 rm -f ${errorFile}

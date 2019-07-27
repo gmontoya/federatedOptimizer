@@ -6,7 +6,7 @@ offset=$3
 
 tmpFile=`mktemp`
 
-cmdA="ld_add('${file}', 'http://${dataset}Endpoint');"
+cmdA="ld_add('${file}', 'http://${dataset}Fedbench');"
 cmdB="rdf_loader_run();"
 cmdC="checkpoint;"
 

@@ -2,6 +2,8 @@
 
 . ./configFile
 
+fedXDescriptionFile=${federationPath}/fedBenchFederation.ttl
+
 sed -i "s,optimize=.*,optimize=false," ${fedXConfigFile}
 cold=true
 auxFile=`mktemp`
@@ -27,18 +29,17 @@ for i in ${s}; do
     l="${l} LS${i}"
 done
 
-l="LD1 CD1"
-
 mv ${fedXPath}/lib/slf4j-log4j12-1.5.2.jar ${fedXPath}/
 
 for query in ${l}; do
     f=0
+    rm -f ${federatedOptimizerPath}/code/cache.db
     for j in `seq 1 ${n}`; do
         cd ${federatedOptimizerPath}/code
-        if [ "$cold" = "true" ] && [ -f ${fedXPath}/cache.db ]; then
-            rm ${fedXPath}/cache.db
+        if [ "$cold" = "true" ] && [ -f cache.db ]; then
+            rm -f cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:${JENA_HOME}/lib/*:${fedXPath}/lib/* evaluateSPARQLQuery ${queriesFolder}/$query ${federationFile} ${fedBenchDataPath} 100000000 true false > ${outputFile} 2> ${errorFile}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -Xmx4096m -cp .:${JENA_HOME}/lib/*:${fedXPath}/lib/* evaluateSPARQLQuery ${queriesFolder}/$query ${federationFile} ${fedBenchDataPath} 100000000 true false ${fedXConfigFile} ${fedXDescriptionFile} > ${outputFile} 2> ${errorFile}
         x=`grep "planning=" ${outputFile}`
         y=`echo ${x##*planning=}`
 

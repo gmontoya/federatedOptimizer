@@ -41,7 +41,7 @@ for query in ${l}; do
             t=`echo $y`
             t=`echo "scale=2; $t*1000" | bc`
             f=$(($f+1))
-            ${federatedOptimizerPath}/fixJSONAnswer.sh ${outputFile}
+            ${federatedOptimizerPath}/scripts/fixJSONAnswer.sh ${outputFile}
         else
             x=`grep "duration=" ${errorFile}`
             y=`echo ${x##*duration=}`
@@ -56,11 +56,11 @@ for query in ${l}; do
             s=-1
         fi
 
-        nr=`python ${federatedOptimizerPath}/formatJSONFile.py ${outputFile} | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+        nr=`python ${federatedOptimizerPath}/scripts/formatJSONFile.py ${outputFile} | wc -l | sed 's/^[ ^t]*//' | cut -d' ' -f1`
 
-        ${federatedOptimizerPath}/processPlansSplendidNSS.sh ${errorFile} > ${auxFile}
+        ${federatedOptimizerPath}/scripts/processPlansSplendidNSS.sh ${errorFile} > ${auxFile}
         nss=`cat ${auxFile}`
-        ${federatedOptimizerPath}/processPlansSplendidNSQ.sh ${errorFile} > ${auxFile}
+        ${federatedOptimizerPath}/scripts/processPlansSplendidNSQ.sh ${errorFile} > ${auxFile}
         ns=`cat ${auxFile}`
         rm ${auxFile}
         echo "${query} ${nss} ${ns} ${s} ${t} ${nr}"

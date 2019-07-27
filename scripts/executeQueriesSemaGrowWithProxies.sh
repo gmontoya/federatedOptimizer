@@ -79,5 +79,6 @@ for query in ${l}; do
     done
 done
 
+rm -f ${tmpFile}*
 rm -f ${outputFile}
 rm -f ${errorFile}

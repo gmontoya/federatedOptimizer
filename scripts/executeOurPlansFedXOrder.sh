@@ -2,6 +2,8 @@
 
 . ./configFile
 
+fedXDescriptionFile=${federationPath}/fedBenchFederation.ttl
+
 sed -i "s,optimize=.*,optimize=false," ${fedXConfigFile}
 cold=true
 outputFile=`mktemp`
@@ -28,12 +30,13 @@ done
 
 for query in ${l}; do
     f=0
+    rm -f ${federatedOptimizerPath}/code/cache.db
     for j in `seq 1 ${n}`; do
         cd ${federatedOptimizerPath}/code
-        if [ "$cold" = "true" ] && [ -f ${fedXPath}/cache.db ]; then
-            rm ${fedXPath}/cache.db
+        if [ "$cold" = "true" ] && [ -f cache.db ]; then
+            rm -f cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:${JENA_HOME}/lib/*:${fedXPath}/lib/* evaluateOurPlansWithFedXOrder ${queriesFolder}/$query ${federationFile} ${fedBenchDataPath} 100000000 true false > ${outputFile} 2> ${errorFile}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s java -cp .:${JENA_HOME}/lib/*:${fedXPath}/lib/* evaluateOurPlansWithFedXOrder ${queriesFolder}/$query ${federationFile} ${fedBenchDataPath} 100000000 true false ${fedXConfigFile} ${fedXDescriptionFile} > ${outputFile} 2> ${errorFile}
         x=`grep "planning=" ${outputFile}`
         y=`echo ${x##*planning=}`
 

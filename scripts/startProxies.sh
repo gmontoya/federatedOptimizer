@@ -17,7 +17,7 @@ rm ${proxyFederationFile}
 for d in ${datasets}; do
     f=`echo "$d" | tr '[:upper:]' '[:lower:]'`
     localProxyPort=$(($firstProxyPort+$i))
-    graph="http://${f}Endpoint"
+    graph="http://${f}Fedbench"
     if [ "${numHosts}" -gt "1" ]; then
         a=${addresses[$i]}
         localPort=$firstPort

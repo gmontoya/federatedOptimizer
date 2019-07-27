@@ -1,0 +1,60 @@
+################################################################################
+# Sesame configuration for SPLENDID Federation.
+#
+# ATTENTION: the Sail implementing the sail:sailType must be published
+#            in META-INF/services/org.openrdf.sail.SailFactory
+################################################################################
+@prefix void: <http://rdfs.org/ns/void#>.
+@prefix rep:  <http://www.openrdf.org/config/repository#>.
+@prefix sr:   <http://www.openrdf.org/config/repository/sail#>.
+@prefix sail: <http://www.openrdf.org/config/sail#>.
+@prefix fed:  <http://west.uni-koblenz.de/config/federation/sail#>.
+
+[] a rep:Repository ;
+   rep:repositoryTitle "SPLENDID Federation" ;
+   rep:repositoryID "SPLENDID" ;
+   rep:repositoryImpl [
+      rep:repositoryType "openrdf:SailRepository" ;
+      sr:sailImpl [
+         sail:sailType "west:FederationSail" ;
+
+         # sparql endpoints
+         fed:member [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/chebi_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8891/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/kegg_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8892/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/drugbank_void.n3> ;
+             void:sparqlEndpoint <http://172.19.2.109:8893/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/geonames_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8894/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/dbpedia_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8895/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/jamendo_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8896/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/nytimes_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8897/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/swdf_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8898/sparql>
+         ], [
+            rep:repositoryType "west:VoidRepository" ;
+            fed:voidDescription <$fedBenchDataPath/lmdb_void.n3> ;
+            void:sparqlEndpoint <http://172.19.2.109:8899/sparql>
+         ]
+      ]
+   ] .

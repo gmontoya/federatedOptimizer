@@ -2,7 +2,7 @@
 
 . ./configFile
 
-federationDescriptionFile=${federationPath}/fedBenchFederation.ttl
+fedXDescriptionFile=${federationPath}/fedBenchFederation.ttl
 
 sed -i "s,optimize=.*,optimize=true," ${fedXConfigFile}
 cold=true
@@ -32,16 +32,16 @@ done
 
 for query in ${l}; do
     f=0
-    rm ${fedXPath}/cache.db
+    rm -f ${fedXPath}/cache.db
     for j in `seq 1 ${n}`; do
         cd ${federatedOptimizerPath}/scripts
         tmpFile=`./startProxies.sh 8891 3030 "ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"`
         sleep 1s
         cd ${fedXPath}
         if [ "$cold" = "true" ] && [ -f cache.db ]; then
-            rm cache.db
+            rm -f cache.db
         fi
-        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./cli.sh -c config2 -d ${federationDescriptionFile} @q ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
+        /usr/bin/time -f "%e %P %t %M" timeout ${w}s ./cli.sh -c ${fedXConfigFile} -d ${fedXDescriptionFile} @q ${queriesFolder}/${query} > ${outputFile} 2> ${errorFile}
         x=`grep "planning=" ${outputFile}`
         y=`echo ${x##*planning=}`
         if [ -n "$y" ]; then
@@ -83,5 +83,6 @@ for query in ${l}; do
     done
 done
 
+rm -f ${tmpFile}*
 rm -f ${outputFile}
 rm -f ${errorFile}

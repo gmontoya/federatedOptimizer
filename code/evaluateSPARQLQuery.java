@@ -235,15 +235,16 @@ class evaluateSPARQLQuery {
         return bgps;
     }
 
-    public static void prepareFedX() {
-        String fedxConfig = "/home/roott/federatedOptimizer/lib/fedX3.1/config2";
-        String dataConfig = "/home/roott/fedBenchFederation.ttl";
+    public static void prepareFedX(String fedXConfigFile, String fedXDescriptionFile) {
+        //System.out.println("evaluating "+queryStr);
         try {
-            Config.initialize(fedxConfig);
-            List<Endpoint> ep = EndpointFactory.loadFederationMembers(new File(dataConfig));
+            Config.initialize(fedXConfigFile);
+            List<Endpoint> ep = EndpointFactory.loadFederationMembers(new File(fedXDescriptionFile));
             FedXFactory.initializeFederation(ep);
+            System.out.println("fedXConfigFile: "+fedXConfigFile);
+            System.out.println("fedXDescriptionFile: "+fedXDescriptionFile);
         } catch (Exception e) {
-            
+            e.printStackTrace(); 
         }
     }
 
@@ -257,7 +258,9 @@ class evaluateSPARQLQuery {
         long budget = Long.parseLong(args[3]);
         includeMultiplicity = Boolean.parseBoolean(args[4]);
         original = Boolean.parseBoolean(args[5]);
-        prepareFedX();
+        String fedXConfigFile = args[6];
+        String fedXDescriptionFile = args[7];
+        prepareFedX(fedXConfigFile, fedXDescriptionFile);
         datasets = readDatasets(datasetsFile);
         loadStatistics();
         // Predicate --> DatasetId --> set of CSId

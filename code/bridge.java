@@ -42,10 +42,12 @@ class bridge {
     public static void main(String[] args) throws Exception {
         String queryFile = args[0];
         String datasetsFile = args[1];
+        String fedXConfigFile = args[2];
+        String fedXDescriptionFile = args[3];
         String queryString = Files.lines(Paths.get(queryFile)).collect(Collectors.joining("\n"));
         evaluateSPARQLQuery.readDatasets(datasetsFile);
         Vector<String> endpoints = evaluateSPARQLQuery.endpoints;
-        evaluateSPARQLQuery.prepareFedX();
+        evaluateSPARQLQuery.prepareFedX(fedXConfigFile, fedXDescriptionFile);
         Thread.sleep(100);
         //System.out.println("prepated fedX");
         Config.getConfig().set("optimize", "true");
@@ -58,10 +60,12 @@ class bridge {
     public static void main2(String[] args) throws Exception {
         String queryFile = args[0];
         String datasetsFile = args[1];
+        String fedXConfigFile = args[2];
+        String fedXDescriptionFile = args[3];
         String queryString = Files.lines(Paths.get(queryFile)).collect(Collectors.joining("\n"));
         evaluateSPARQLQuery.readDatasets(datasetsFile);
         Vector<String> endpoints = evaluateSPARQLQuery.endpoints;
-        evaluateSPARQLQuery.prepareFedX();
+        evaluateSPARQLQuery.prepareFedX(fedXConfigFile, fedXDescriptionFile);
         Thread.sleep(100);
         //System.out.println("prepated fedX");
         Config.getConfig().set("optimize", "true");

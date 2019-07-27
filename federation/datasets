@@ -1,0 +1,9 @@
+ChEBI	http://HOST1:PORT1/sparql
+KEGG	http://HOST2:PORT2/sparql
+Drugbank	http://HOST3:PORT3/sparql
+Geonames	http://HOST4:PORT4/sparql
+DBpedia	http://HOST5:PORT5/sparql
+Jamendo	http://HOST6:PORT6/sparql
+NYTimes	http://HOST7:PORT7/sparql
+SWDF	http://HOST8:PORT8/sparql
+LMDB	http://HOST9:PORT9/sparql
