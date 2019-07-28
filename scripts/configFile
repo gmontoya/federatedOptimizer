@@ -38,7 +38,7 @@ httpcomponentsClientPath=/home/roott/odyssey/httpcomponents-client-4.5.3
 # addresses of the SPARQL endpoints in the federation
 # if all the endpoints are in the same machine, include it only once
 # endpoints in different machines are assumed use port 8890 and in the same
-# machine ports 8891-8899 in the order given in ${federationPath}/datasetsVirtuoso
+# machine ports 8891-8899 in the order given in ${federationPath}/datasets
 #declare -a addresses=("HOST1" "HOST2" "HOST3" "HOST4" "HOST5" "HOST6" "HOST7" "HOST8" "HOST9")
 declare -a addresses=("HOST1")
 # number of hosts for the endpoints
