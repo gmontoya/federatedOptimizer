@@ -1,10 +1,9 @@
 Implementation used to evaluate the Odyssey approach ("The Odyssey Approach for Optimizing Federated SPARQL Queries", ISWC2017)
-
-* First, you will need to compile the sources, it can be done with the script compileAll.sh as:
+* First, you will need to update the file scripts/configFile with the appropriate paths for your machine and available endpoints, also update the timeout value and number of runs if needed
+* Compile the sources, it can be done with the script compileAll.sh as:
 ```
 ./compileAll.sh
 ```
-* Update the file scripts/configFile with the appropriate paths for your machine and available endpoints, also update the timeout value and number of runs if needed
 * Set the correct paths in the systems that require that, it can be done with the script setPathFederationFiles.sh as:
 ```
 ./setPathFederationFiles.sh
