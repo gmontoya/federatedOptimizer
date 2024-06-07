@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.Random;
 
 class QTreeOne implements Serializable {
-
+    protected static final long serialVersionUID = 5221508779908127382L;
     private int bmax;
     private int fmax;
     private PriorityQueue<QTreeOneNode> pq;

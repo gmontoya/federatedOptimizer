@@ -1375,6 +1375,7 @@ class RadixTreeOne implements Serializable {
     }
 
     class LeafRadix extends NodeRadix implements Serializable {
+        private static final long serialVersionUID = 8964534877945125548L;
         QTreeOne values;
         HashMap<Integer, HashSet<Integer>> valuesS;
         HashMap<String, HashMap<Integer, HashSet<Integer>>> valuesO;

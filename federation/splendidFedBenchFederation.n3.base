@@ -22,39 +22,39 @@
          fed:member [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/chebi_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8891/sparql>
+            void:sparqlEndpoint <http://HOST1:PORT1/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/kegg_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8892/sparql>
+            void:sparqlEndpoint <http://HOST2:PORT2/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/drugbank_void.n3> ;
-             void:sparqlEndpoint <http://172.19.2.109:8893/sparql>
+             void:sparqlEndpoint <http://HOST3:PORT3/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/geonames_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8894/sparql>
+            void:sparqlEndpoint <http://HOST4:PORT4/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/dbpedia_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8895/sparql>
+            void:sparqlEndpoint <http://HOST5:PORT5/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/jamendo_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8896/sparql>
+            void:sparqlEndpoint <http://HOST6:PORT6/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/nytimes_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8897/sparql>
+            void:sparqlEndpoint <http://HOST7:PORT7/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/swdf_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8898/sparql>
+            void:sparqlEndpoint <http://HOST8:PORT8/sparql>
          ], [
             rep:repositoryType "west:VoidRepository" ;
             fed:voidDescription <$fedBenchDataPath/lmdb_void.n3> ;
-            void:sparqlEndpoint <http://172.19.2.109:8899/sparql>
+            void:sparqlEndpoint <http://HOST9:PORT9/sparql>
          ]
       ]
    ] .
