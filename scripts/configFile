@@ -1,9 +1,11 @@
 # number of times each the queries will be executed
-numRuns=10
+numRuns=1
 # timeout in seconds
 timeoutValue=1200
+folder=MYFOLDER
+dumpPath=${folder}/datasets/fedBenchData
 # path of the repository federatedOptimizer
-federatedOptimizerPath=/home/roott/odyssey/federatedOptimizer
+federatedOptimizerPath=${folder}/federatedOptimizer
 # path of the data and statistics
 # included statistics:
 # ${fedBenchDataPath}/statistics${d}_* for d in "ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB Geonames DBpedia" and ${fedBenchDataPath}/cps_* (for Odyssey)
@@ -11,7 +13,8 @@ federatedOptimizerPath=/home/roott/odyssey/federatedOptimizer
 # ${fedBenchDataPath}/semagrowMetadata.ttl  (for semagrow)
 # ${fedBenchDataPath}/*_void.n3 (for splendid) 
 fedBenchDataPath=${federatedOptimizerPath}/fedbench
-JENA_HOME=/home/roott/apache-jena-2.13.0
+##JENA_HOME=/home/gmontoya/jena/apache-jena-2.13.0
+JENA_HOME=${federatedOptimizerPath}/lib/apache-jena-2.13.0
 # folder that has the fedBench queries
 queriesFolder=${federatedOptimizerPath}/queries
 # folder that includes the relevant federation descriptions for the different 
@@ -23,24 +26,25 @@ queriesFolder=${federatedOptimizerPath}/queries
 federationPath=${federatedOptimizerPath}/federation
 # description of the federation for Odyssey and VOID
 federationFile=${federationPath}/datasets
-fedXPath=/home/roott/odyssey/fedX3.1
-fedXConfigFile=${fedXPath}/config2
+##fedXPath=/home/gmontoya/odyssey/fedX
+fedXPath=${federatedOptimizerPath}/lib/FedX3.1
+fedXConfigFile=${federationPath}/config2
 # file that can be used to store the pids of the proxies in the federation
-proxyFederationFile=/home/roott/tmp/proxyFederation
-FEDX_HIBISCUS_HOME=/home/roott/FedX-HiBISCus
+proxyFederationFile=${federatedOptimizerPath}/tmp/proxyFederation
+FEDX_HIBISCUS_HOME=${federatedOptimizerPath}/lib/HiBISCuS/FedX-HiBISCus
 hibiscusConfigFile=${federationPath}/config.properties
-SEMAGROW_HOME=/home/roott/semagrow
-SPLENDID_HOME=/home/roott/rdffederator
-virtuosoPath=/home/roott/virtuosoInstallation
+SEMAGROW_HOME=${federatedOptimizerPath}/lib/semagrow
+SPLENDID_HOME=${federatedOptimizerPath}/lib/rdffederator
+#virtuosoPath=/home/roott/virtuosoInstallation
 # Sorted if the dataset file is sorted by subject
 suffix=Sorted
-httpcomponentsClientPath=/home/roott/odyssey/httpcomponents-client-4.5.3
+httpcomponentsClientPath=${federatedOptimizerPath}/lib/httpcomponents-client-4.5.3
 # addresses of the SPARQL endpoints in the federation
 # if all the endpoints are in the same machine, include it only once
 # endpoints in different machines are assumed use port 8890 and in the same
 # machine ports 8891-8899 in the order given in ${federationPath}/datasets
 #declare -a addresses=("HOST1" "HOST2" "HOST3" "HOST4" "HOST5" "HOST6" "HOST7" "HOST8" "HOST9")
-declare -a addresses=("HOST1")
+declare -a addresses=("localhost")
 # number of hosts for the endpoints
 numHosts=${#addresses[@]}
 
