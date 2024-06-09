@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./configFile
 . ./setFederation
 
 for i in `seq 1 ${number}`; do

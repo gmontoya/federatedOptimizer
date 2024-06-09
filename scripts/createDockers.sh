@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. ./configFile
 . ./setFederation
 
 # for 16GB available

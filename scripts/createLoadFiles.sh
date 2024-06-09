@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./configFile
 . ./setFederation
 
 p=`pwd`
