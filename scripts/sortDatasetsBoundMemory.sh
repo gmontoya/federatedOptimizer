@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . ./configFile
+. ./setFederation
 
 # maximum number of lines per file to sort
 m=5000000
@@ -8,8 +9,10 @@ m=5000000
 # sorted by subject?
 subj=true
 datasets="ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB DBpedia Geonames"
+datasets="Geonames"
 
 cd ${federatedOptimizerPath}/code
+files=${dumpFolder}/${federation}Data
 
 if [ "$subj" = "true" ]; then
    s=Sorted
@@ -19,7 +22,7 @@ fi
 
 for d in ${datasets}; do
     f=`echo "$d" | tr '[:upper:]' '[:lower:]'`
-    dump="${fedBenchDataPath}/${f}.n3"
+    dump="${files}/${d}/${f}.n3"
 
     n=`wc -l ${dump} | sed 's/^[ ^t]*//' | cut -d' ' -f1`
     if [ "$n" -gt "$m" ]; then
@@ -42,9 +45,9 @@ for d in ${datasets}; do
                 started=1
             fi  
         done
-        mv  ${accFile} ${fedBenchDataPath}/${f}${s}.n3
+        mv  ${accFile} ${files}/${d}/${f}${s}.n3
     else 
-        java orderDataset ${dump} ${n} ${subj} > ${fedBenchDataPath}/${f}${s}.n3
+        java orderDataset ${dump} ${n} ${subj} > ${files}/${d}/${f}${s}.n3
     fi
 done
 
