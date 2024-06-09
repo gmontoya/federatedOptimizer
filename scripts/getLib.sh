@@ -32,15 +32,16 @@ chmod 755 cli.sh
 
 #semagrow
 cd ${federatedOptimizerPath}/lib
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-export PATH=$PATH:$JAVA_HOME/bin
+#export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+#export PATH=$PATH:$JAVA_HOME/bin
 
 git clone https://github.com/semagrow/semagrow.git
+cd semagrow
 git checkout a3f0de4
 cp ${federatedOptimizerPath}/engines/semagrow/CliMain.java ${federatedOptimizerPath}/lib/semagrow/sail/src/main/java/eu/semagrow/cli/
 cp ${federatedOptimizerPath}/engines/semagrow/SemagrowSailConnection.java ${federatedOptimizerPath}/lib/semagrow/sail/src/main/java/eu/semagrow/sail/
 
-cd ${federatedOptimizerPath}/lib/semagrow/
+#cd ${federatedOptimizerPath}/lib/semagrow/
 
 mvn clean package -Dmaven.test.skip
 
