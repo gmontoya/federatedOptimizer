@@ -3,7 +3,8 @@ numRuns=1
 # timeout in seconds
 timeoutValue=1200
 folder=MYFOLDER
-dumpPath=${folder}/datasets/fedBenchData
+#folder=/home/ubuntu
+dumpFolder=${folder}/datasets
 # path of the repository federatedOptimizer
 federatedOptimizerPath=${folder}/federatedOptimizer
 # path of the data and statistics

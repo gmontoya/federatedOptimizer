@@ -2,6 +2,7 @@
 
 . ./configFile
 
+mkdir -p ${federatedOptimizerPath}/lib
 cd ${federatedOptimizerPath}/lib/
 wget https://archive.apache.org/dist/jena/binaries/apache-jena-2.13.0.tar.gz
 gunzip apache-jena-2.13.0.tar.gz
