@@ -16,5 +16,4 @@ for f in `ls $pathToFiles/*`; do
     else 
         ${JENA_HOME}/bin/rdfparse ${fileName}.${ext} >> ${outputFile}
     fi
-    break
 done
