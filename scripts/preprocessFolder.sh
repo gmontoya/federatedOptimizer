@@ -1,6 +1,6 @@
 #preprocessFolder: combines the files in the folder into one file in N-Triple format
+#!/bin/bash
 . ./configFile
-
 pathToFiles=$1
 outputFile=$2
 
@@ -14,6 +14,7 @@ for f in `ls $pathToFiles/*`; do
     if [ ${x} -lt ${#okay} ]; then
         cat ${f} >> ${outputFile}
     else 
-	    ${JENA_HOME}/bin/rdfparse ${fileName}.${ext} >> ${outputFile}
+        ${JENA_HOME}/bin/rdfparse ${fileName}.${ext} >> ${outputFile}
     fi
+    break
 done
