@@ -3,13 +3,15 @@
 . ./configFile
 . ./setFederation
 
+ext=nt
+suffix=Data
 # maximum number of lines per file to sort
-m=5000000
+m=20000000
 
 # sorted by subject?
 subj=true
-datasets="ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB DBpedia Geonames"
-datasets="Geonames"
+#datasets="ChEBI KEGG Drugbank Jamendo NYTimes SWDF LMDB DBpedia Geonames"
+#datasets="Geonames"
 
 cd ${federatedOptimizerPath}/code
 files=${dumpFolder}/${federation}Data
@@ -20,9 +22,12 @@ else
    s=ObjSorted
 fi 
 
-for d in ${datasets}; do
-    f=`echo "$d" | tr '[:upper:]' '[:lower:]'`
-    dump="${files}/${d}/${f}.n3"
+for i in `seq 1 ${number}`; do
+    h=$(($i-1))
+    d=${endpoints[${h}]}
+    #f=`echo "$d" | tr '[:upper:]' '[:lower:]'`
+    dump="${files}/${d}/${d}${suffix}.${ext}"
+    outputFile="${files}/${d}/${d}${suffix}${s}.${ext}"
 
     n=`wc -l ${dump} | sed 's/^[ ^t]*//' | cut -d' ' -f1`
     if [ "$n" -gt "$m" ]; then
@@ -31,6 +36,7 @@ for d in ${datasets}; do
         split -l $m ${dump} tmp${d}
         for g in `ls tmp${d}*`; do
             t=`wc -l ${g} | sed 's/^[ ^t]*//' | cut -d' ' -f1`
+	    echo "java orderDataset ${g} ${t} ${subj} > ${g}_sorted"
             java orderDataset ${g} ${t} ${subj} > ${g}_sorted
             rm ${g}
         done
@@ -45,9 +51,10 @@ for d in ${datasets}; do
                 started=1
             fi  
         done
-        mv  ${accFile} ${files}/${d}/${f}${s}.n3
+        mv  ${accFile} ${outputFile}
     else 
-        java orderDataset ${dump} ${n} ${subj} > ${files}/${d}/${f}${s}.n3
+	echo "java orderDataset ${dump} ${n} ${subj} > ${outputFile}"
+        java orderDataset ${dump} ${n} ${subj} > ${outputFile}
     fi
 done
 

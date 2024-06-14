@@ -10,7 +10,7 @@ for i in `seq 1 ${number}`; do
     pw=passwordep${h}
     portA=$((1111+$i))
     for g in ${graphs}; do
-        docker exec -it ${name} isql 1111 -P ${pw} exec="sparql delete { graph <${g}> { ?s ?p ?o } } where { graph <${g}> { ?s ?p ?o } };"
-        docker exec -it ${name} isql 1111 -P ${pw} exec="checkpoint;"
+        docker exec ${name} isql 1111 -P ${pw} exec="sparql delete { graph <${g}> { ?s ?p ?o } } where { graph <${g}> { ?s ?p ?o } };"
+        docker exec ${name} isql 1111 -P ${pw} exec="checkpoint;"
     done
 done

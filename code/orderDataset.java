@@ -37,25 +37,40 @@ class orderDataset {
             String l = br.readLine();
             while (l!=null) {
                 int i = l.indexOf(" ");
+		if (i<=0) { 
+                    l = br.readLine();
+		    continue; 
+		}
                 String s = l.substring(0, i);
                 String r = l.substring(i+1);
                 i = r.indexOf(" ");
+		if (i<=0) { 
+		    l = br.readLine();
+		    continue; 
+		}
                 String p = r.substring(0, i);
                 String o = r.substring(i+1);
-                triples[k][0] = s;
-                triples[k][1] = p;
-                triples[k][2] = o;
+		if ((s != null) && (p!=null) && (o!= null)) {
+                    triples[k][0] = s;
+                    triples[k][1] = p;
+                    triples[k][2] = o;
+		    k++;
+		} /*else {
+		    System.out.println(s);
+		    System.out.println(p);
+		    System.out.println(o);
+		}*/
                 //Triple t = new Triple(s,p,o);
                 //triples.add(t);
                 l = br.readLine();
-                k++;
+      
             }
             br.close();
         } catch (IOException e) {
             System.err.println("Problems reading file: "+fileName);
             System.exit(1);
         }
-        mergeSort(triples, 0, N);
+        mergeSort(triples, 0, k);
         //Collections.sort(triples);
         //for (Triple t : triples) {
         //    System.out.println(t.toString());
@@ -63,7 +78,7 @@ class orderDataset {
         String s = null;
         String p = null;
         String o = null;
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < k; i++) {
             if ((s == null && p == null && o == null) || !s.equals(triples[i][0]) || !p.equals(triples[i][1]) || !o.equals(triples[i][2])) {
                 System.out.println(triples[i][0]+" "+triples[i][1]+" "+triples[i][2]);
             }
