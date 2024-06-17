@@ -8,11 +8,13 @@ class mergeDataset {
         String fileName1 = args[0];
         String fileName2 = args[1];
         Boolean subjOrd = Boolean.parseBoolean(args[2]);
+	String l1 = null;
+	String l2 = null;
         try {
             BufferedReader br1 = new BufferedReader(new FileReader(fileName1));
             BufferedReader br2 = new BufferedReader(new FileReader(fileName2));
-            String l1 = br1.readLine();
-            String l2 = br2.readLine();
+            l1 = br1.readLine();
+            l2 = br2.readLine();
             while (l1!=null && l2 != null) {
                 int i = l1.indexOf(" ");
                 String s1 = l1.substring(0, i);
@@ -64,6 +66,11 @@ class mergeDataset {
             br2.close();
         } catch (IOException e) {
             System.err.println("Problems reading file: "+fileName1+" or "+fileName2);
+            System.exit(1);
+        } catch (StringIndexOutOfBoundsException e) {
+            System.err.println("l1: "+l1+"\nl2: "+l2);
+	    System.err.println(e.getMessage());
+            e.printStackTrace();
             System.exit(1);
         }
     }

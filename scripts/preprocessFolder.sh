@@ -12,7 +12,12 @@ for f in `ls $pathToFiles/*`; do
     x=`echo ${okay#*$ext}`
     x=${#x}
     if [ ${x} -lt ${#okay} ]; then
-        cat ${f} >> ${outputFile}
+        n=`grep "\@prefix" ${f}  | wc -l`
+	if [ $n -gt 0 ]; then
+            ${JENA_HOME}/bin/turtle ${fileName}.${ext} >> ${outputFile}
+        else 
+            cat ${f} >> ${outputFile}
+        fi
     else 
         ${JENA_HOME}/bin/rdfparse ${fileName}.${ext} >> ${outputFile}
     fi
