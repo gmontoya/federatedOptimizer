@@ -12,6 +12,8 @@
   * It will also download some engines used in the empirical evaluation from their github repositories and enhance them with some modified files available at `engines` to include time measurements used in the empirical evaluation
 * Execute the script `scripts/compileAll.sh` to compile the Java files (requires Java 8)
 * Execute the script `scripts/setPathFederationFiles.sh` to include absolute paths in some of the files used by the engines
+* Make sure that the statistics for Odyssey are available
+  * Check the section about [Generating Odyssey's statistics](https://github.com/gmontoya/federatedOptimizer/tree/master#generating-odysseys-statistics)
 * Execute the systems you are interested in using the appropriate scripts. 
   * To have the engines accessing the endpoints directly (without using proxies), use the scripts (available in the folder `scripts`):
 ```
@@ -56,9 +58,23 @@
         * (the `dumpFolder` variable is set in the file `scripts/configFile` and the `federation` variable is set in the file `scripts/setFederation`
 * Use the core statistics to compute federated statistics based on the entity summaries using the script `scripts/generateStatisticsFederated.sh`
 
+## Setting up a federation of SPARQL endpoints
+* You can set up a federation using Docker and dump files with the federation data using some of the scripts available at `scripts`
+  * Create the containers for the endpoints using the script `createDockers.sh`
+    * It is assumed that the data for the federation is available in the folder `${dumpFolder}/${federation}Data/${endpoint}` and a volume for the container can be created at `${folder}/endpoints/${federation}${endpoint}`
+      * The `dumpFolder` and `folder` variables are set in the file `scripts/configFile` and the `federation` and `names` variables are set in the file `scripts/setFederation` (`names` includes the names of the datasets in the federation)
+  * You can uncompress the federation data using the script `uncompressData.sh`
+    * The script assumes that the data is available in the `${dumpFolder}/${federation}Data/` folder with one folder per endpoint
+    * The `dumpFolder` variable is set in the file `scripts/configFile` and the `federation` and `names` variables are set in the file `scripts/setFederation` (`names` includes the names of the datasets in the federation)
+  * Use the script `createLoadFiles.sh` to generate isql files to load the data into Virtuoso endpoints
+  * Use the script `loadDataDockers.sh` to use the generated files and load the data into the endpoints
+* You can start the federation using the script `scripts/restartDockers.sh`
+  * The file uses the informations set in the files `configFile` and `setFederation`
+* You can stop the federation using the script `scripts/stopDockers.sh`
+  * The file uses the informations set in the files `configFile` and `setFederation`
 
 ## Other comments:
-* Void's statistics were generated using the script: generateVoidStatistics.sh
+* Void's statistics were generated using the script: `generateVoidStatistics.sh`
 
 ###
 This code is available in this [repository](https://github.com/gmontoya/federatedOptimizer)
