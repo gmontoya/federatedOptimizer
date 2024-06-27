@@ -113,9 +113,10 @@ class generateStatistics {
         HashMap<String, HashMap<String, HashMap<Integer, Integer>>> invertIndexObject = new HashMap<String, HashMap<String, HashMap<Integer, Integer>>>();
         //  CS -> Property -> Objets
         HashMap<Integer, HashMap<String, HashSet<String>>> csPsOs = new HashMap<Integer, HashMap<String, HashSet<String>>>();
+	String l = null;
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName));
-            String l = br.readLine();
+            l = br.readLine();
             String pe = null;
             String key = "";
             Integer ikey = -1;
@@ -354,7 +355,11 @@ class generateStatistics {
         } catch (IOException e) {
             System.err.println("Problems reading file: "+fileName);
             System.exit(1);
-        }
+        } catch (Exception e) {
+            System.err.println("an exception was catched with message: "+e.getMessage());
+            System.err.println("l: "+l);
+	    System.exit(1);
+	}
         
     }
 }

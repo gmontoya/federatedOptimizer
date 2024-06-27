@@ -1,6 +1,8 @@
-##federation=LargeRDFBench
+#federation=LargeRDFBench
 #names="ChEBI KEGG DrugBank GeoNames DBPedia-Subset Jamendo NYT SWDFood LMDB LinkedTCGA-A LinkedTCGA-E LinkedTCGA-M Affymetrix"
 federation=fedBench
 names="ChEBI KEGG Drugbank Geonames DBpedia Jamendo NYTimes SWDF LMDB"
 declare -a endpoints=($names)
 number=${#endpoints[@]}
+odysseyStatsPath=${federatedOptimizerPath}/${federation}
+
